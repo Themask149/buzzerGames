@@ -2,10 +2,11 @@
   "name": "buzzergames",
   "version": "1.0.0",
   "description": "I tried to make a website that is focus on games about buzzers",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type":"module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Themask149/buzzerGames.git"
