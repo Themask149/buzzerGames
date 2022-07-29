@@ -1,0 +1,28 @@
+{
+  "name": "buzzergames",
+  "version": "1.0.0",
+  "description": "I tried to make a website that is focus on games about buzzers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Themask149/buzzerGames.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Themask149/buzzerGames/issues"
+  },
+  "homepage": "https://github.com/Themask149/buzzerGames#readme",
+  "dependencies": {
+    "bootstrap": "^5.2.0",
+    "cors": "^2.8.5",
+    "ejs": "^3.1.8",
+    "express": "^4.18.1",
+    "jquery": "^3.6.0",
+    "nodemon": "^2.0.19",
+    "socket.io": "^4.5.1"
+  }
+}
