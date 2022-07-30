@@ -10,16 +10,31 @@ router.get('/debug',(req,res)=>{
 });
 
 const rooms=[]
+const listeCodes=[]
 
 router.post('/',(req,res)=>{
     const infos = req.body;
     let roomID = 0;
     if (infos.action == "host"){
         roomID = Math.floor(Math.random()*899999)+100000;
+        listeCodes.push(roomID);
+        rooms.push({roomID:roomID,players:[]});
     }
     console.log(roomID);
-    res.redirect('/buzzer/apps/'+roomID);
+    res.redirect('/apps/buzzer'+roomID);
     
+})
+
+router.get('/:code',(req,res)=>{
+    const params = req.params;
+    if (params.code in listeCodes){
+        console.log(listeCodes)
+    }
+    else{
+        console.log(req.params);
+        res.status("404").send("Pas de room associé à ce code")
+    }
+
 })
 
 export default router;
