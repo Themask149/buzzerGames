@@ -23,16 +23,16 @@
                         <div class="card-header bg-info"> Rejoindre</div>
 
                         <div class="card-body ">
-                            <form class="row g-2">
-
+                            <form action="/apps/buzzer" method="post" class="row g-2">
+                                
                                 <label for="username" class="visually-hidden">Username</label>
-                                <input type="text" class="form-control" id="username" minlength="2" maxlength="20"
-                                    placeholder="Username" required>
+                                <input type="text" class="form-control" id="usernameR" minlength="2" maxlength="20"
+                                    placeholder="Username" name ="usernameR" required>
 
                                 <label for="code" class="visually-hidden">Code</label>
-                                <input type="number" class="form-control" id="code" placeholder="Code" required
+                                <input type="number" class="form-control" name="code" id="code" placeholder="Code" required
                                     min="99999" maxlength="1000000">
-
+                                <input type="hidden" name="action" value="join">
                                 <button type="submit" class="btn btn-primary mb-3">Rejoindre</button>
 
                             </form>
@@ -42,11 +42,12 @@
                     <div class="card col-5 mx-auto " style="padding-right: 0px;padding-left: 0px;">
                         <div class="card-header bg-info">Créer</div>
                         <div class="card-body ">
-                            <form class="row g-3">
+                            <form action="/apps/buzzer" method="post" class="row g-3">
 
                                 <label for="username" class="visually-hidden">Username</label>
-                                <input type="text" class="form-control" id="username" minlength="2" maxlength="20"
+                                <input type="text" class="form-control" id="usernameH" name ="usernameH" minlength="2" maxlength="20"
                                     placeholder="Username" required>
+                                <input type="hidden" name="action" value="host">
 
                                 <button type="submit" class="btn btn-primary mb-3">Créer</button>
 

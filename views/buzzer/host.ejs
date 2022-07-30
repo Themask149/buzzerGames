@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="../../bootstrap/css/bootstrap.min.css">
+    <title>Buzzer - Host</title>
+</head>
+
+<body>
+    <%- include('../partials/navbar'); %>
+
+    <h1 class="text-center display-4">Game Code: <%= code %></h1>
+    <div class="row ">
+        <div id="buzzer-div" class="mx-auto text-center col-lg-4 col-sm-6 border-right" style=" border-right: 1px solid #ccc;">
+            <h2>Etat du Buzzer</h2>
+            <svg height="90%" width="90%" class="mx-auto" >
+                <circle cx="50%" cy="50%" r="5em" stroke="black" stroke-width="3" fill="yellow" id="buzzer"/>
+                <text x="50%" y="50%" text-anchor="middle" class="fs-1" id="buzzer-state">Bloqué</text>
+            </svg>
+        </div>
+        <div id="buttons" class="mx-auto text-center col-lg-2 col-sm-6 border-right" style=" border-right: 1px solid #ccc;">
+            <h2>Commandes</h2>
+            <button type="button" class="btn btn-warning">Bloquer</button>
+            <button type="button" class="btn btn-success">Libérer</button>
+        </div>
+        <div id="players-div " class="mx-auto text-center col pt-5" style="text-align:center;">
+            <div class="card mx-auto col-8">
+                <div class="card-header">
+                  Liste des joueurs
+                </div>
+                <div class="card-body">
+                  <ul class="list-group">
+                    <% players.forEach( (player)=>{ %>
+                        <li class="list-group-item"><%=player.username%></li>
+                    <% }) %>
+                  </ul>
+                </div>
+              </div>
+        </div>
+    </div>
+
+    <%- include('../partials/script'); %>
+    <script src="/js/host.js"></script>
+</body>
