@@ -4,13 +4,15 @@ import {createServer} from "http";
 const app = express();
 const http = createServer(app);
 const port = 8080;
-import routeBuzzer from './routes/buzzer.js';
+const io = new Server(http);
+import routeBuzzerFunction from './routes/buzzer.js';
 import ejs from "ejs";
 
+const routeBuzzer=routeBuzzerFunction(io);
 /**
  * @type {Socket}
  */
- const io = new Server(http);
+
 app.use(express.urlencoded({
     extended: true
   }));
@@ -30,5 +32,5 @@ app.use(express.json())
  })
 
 app.get('/', (req, res) => {
-    res.render('home');
+    res.render('home',{titre:"Welcome !",root:"",title:"Accueil"});
 });
