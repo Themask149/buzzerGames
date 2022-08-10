@@ -1,3 +1,4 @@
+// jshint esversion:6
 const player = {
     host: true,
     roomId: null,
@@ -27,12 +28,16 @@ socket.on('host launch',(player)=>{
     liberer();
 });
 
+socket.on("new player",(player)=>{
+    $('#player-list').append(`<li class="list-group-item">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" class="btn btn-secondary kick">kick</button> </div> </li>`);
+});
+
 function liberer(){
-    console.log("libere")
+    console.log("libere");
     $("#buzzer-state").text("BUZZ");
     $("#buzzer").attr('fill',"green").on('click',buzzerAction);
     
-};
+}
 
 function buzzerAction(){
     var audio = new Audio('/components/buzzsound.mp3');
@@ -41,4 +46,4 @@ function buzzerAction(){
 
 function bloquer(){
 
-};
+}
