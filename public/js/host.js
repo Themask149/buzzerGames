@@ -52,7 +52,13 @@ socket.on('host launch',(player)=>{
 });
 
 socket.on("new player",(player)=>{
-    $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" class="btn btn-secondary kick">kick</button> </div> </li>`);
+    $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${player.socketId}" class="btn btn-secondary kick">kick</button> </div> </li>`);
+    $('.kick').on('click',(e)=>{
+        e.preventDefault();
+        console.log('kick');
+        console.log(e.target.id);
+        socket.emit("kick",e.target.id);
+    })
 });
 
 socket.on("remove player",(player)=>{
@@ -61,8 +67,16 @@ socket.on("remove player",(player)=>{
 })
 
 socket.on("modeChanged",()=>{
-    $("#success-mode-alert").fadeTo(2000, 500).slideUp(500, function(){
-        $("#success-mode-alert").slideUp(500);
+    $("#success-alert").html("<strong>Mode changed </strong>");
+    $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
+        $("#success-alert").slideUp(500);
+    });
+})
+
+socket.on("kick-success",()=>{
+    $("#success-alert").html("<strong>Played kicked </strong>");
+    $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
+        $("#success-alert").slideUp(500);
     });
 })
 

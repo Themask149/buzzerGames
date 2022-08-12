@@ -141,6 +141,17 @@ export default function (io) {
 
         })
 
+        socket.on("kick",(socketId)=>{
+            var bool=false;
+            if (p.host){
+                bool=true;
+                io.in(socketId).disconnectSockets();
+            }
+            if (bool){
+                io.to(socket.id).emit("kick-success");
+            }
+        })
+
         socket.on("disconnect", () => {
             console.log(`[Disconnection] ${socket.id}`)
             if (p && !p.host) {
@@ -159,6 +170,8 @@ export default function (io) {
                 listeCodes = listeCodes.filter((code) => code !== p.roomId);
             }
         })
+
+
     });
 
     function isHost(socketId, player, room) {
