@@ -4,6 +4,9 @@
 
     <body>
         <%- include('../partials/navbar'); %>
+            <div class="alert alert-success mt-5" style="display: none;" id="success-mode-alert">
+                <strong>Mode changed </strong>
+            </div>
 
             <h1 class="text-center display-4">Game Code: <%= code %>
             </h1>
@@ -16,7 +19,7 @@
                                 <input type="hidden" name="code" id="code" value=<%=code %>>
                                 <label for="username" class="form-label ">Pseudo</label>
                                 <input type="text" name="" id="username" class="form-control" minlength="2"
-                                    maxlength="20" placeholder="Saisir votre pseudo" required>
+                                    maxlength="20" placeholder="Saisir votre pseudo" pattern="[a-zA-Z0-9\s]+" required>
                             </div>
                             <button class="btn btn-primary" id="start" type="submit">Rejoindre la partie</button>
                         </form>
@@ -41,13 +44,14 @@
                     </div>
                 </div>
             </div>
-
-            <div class="row" id="app-div" style="display: none;">
+            <div id="app-div" style="display: none;">
+            <div class="row">
                 <div id="buzzer-div" class="mx-auto text-center col-lg-4 col-sm-6 border-right"
                     style=" border-right: 1px solid #ccc;">
                     <h2>Etat du Buzzer</h2>
                     <svg height="90%" width="90%" class="mx-auto" id="buzzer">
-                        <circle cx="50%" cy="50%" r="5em" stroke="black" stroke-width="3" fill="yellow"  id="buzzer-circle"/>
+                        <circle cx="50%" cy="50%" r="5em" stroke="black" stroke-width="3" fill="yellow"
+                            id="buzzer-circle" />
                         <text x="50%" y="50%" text-anchor="middle" class="fs-1" id="buzzer-state">Bloqué</text>
                     </svg>
                 </div>
@@ -57,21 +61,35 @@
                     <button type="button" class="btn btn-warning" id="bloquer">Bloquer</button>
                     <button type="button" class="btn btn-success" id="liberer">Libérer</button>
                 </div>
-                <div id="players-div " class="mx-auto text-center col pt-5" style="text-align:center;">
+                <div id="buzzlist-div " class="mx-auto text-center col pt-5" style="text-align:center;">
                     <div class="card mx-auto col-8">
                         <div class="card-header">
-                            Liste des joueurs
+                            Liste des Buzz
                         </div>
                         <div class="card-body">
-                            <ul class="list-group" id="player-list">
+                            <ul class="list-group" id="buzzing-list">
+
                             </ul>
                         </div>
                     </div>
                 </div>
+                
             </div>
-            <div class="alert alert-success mt-5" style="display: none;" id="success-mode-alert">
-                <strong>Mode changed </strong>
+            <div id="players-div " class="mx-auto text-center col pt-5" style="text-align:center;">
+                <div class="card mx-auto col-8">
+                    <div class="card-header">
+                        Liste des joueurs
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group" id="player-list">
+
+                        </ul>
+                    </div>
+                </div>
             </div>
+        </div>
+            
+
 
             <%- include('../partials/script'); %>
                 <script src="/js/host.js"></script>

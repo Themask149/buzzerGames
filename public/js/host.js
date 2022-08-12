@@ -52,8 +52,13 @@ socket.on('host launch',(player)=>{
 });
 
 socket.on("new player",(player)=>{
-    $('#player-list').append(`<li class="list-group-item">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" class="btn btn-secondary kick">kick</button> </div> </li>`);
+    $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" class="btn btn-secondary kick">kick</button> </div> </li>`);
 });
+
+socket.on("remove player",(player)=>{
+    console.log(`Bye bye ${player.username}`)
+    $(`#${player.username}`).remove();
+})
 
 socket.on("modeChanged",()=>{
     $("#success-mode-alert").fadeTo(2000, 500).slideUp(500, function(){

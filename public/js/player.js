@@ -29,10 +29,10 @@ socket.on("player init",(room,p)=>{
     player=p;
     room.players.forEach((player)=>{
         if (player.host){
-            $('#player-list').append(`<li class="list-group-item">${player.username} (Host) </li>`);
+            $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} (Host) </li>`);
         }
         else{
-            $('#player-list').append(`<li class="list-group-item">${player.username} `);
+            $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} `);
         }
     });
     if (p.free&&!p.locked&&!p.buzzed){
@@ -45,8 +45,13 @@ socket.on("player init",(room,p)=>{
         console.log(p);
     }
 });
+
+socket.on("remove player",(player)=>{
+    console.log(`Bye bye ${player.username}`)
+    $(`#${player.username}`).remove();
+})
 socket.on("new player",(player)=>{
-    $('#player-list').append(`<li class="list-group-item">${player.username} `);
+    $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} `);
 });
 
 socket.on("libere",()=>{
@@ -55,6 +60,13 @@ socket.on("libere",()=>{
 socket.on("block",()=>{
     block();
 })
+
+socket.on("disconnect",()=>{
+    alert("L'hôte s'est déconnecté");
+    document.location.href="/";
+})
+
+
 
 function liberer(){
     console.log("libere");
