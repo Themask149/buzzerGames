@@ -78,20 +78,25 @@ export default function (io) {
             if (!/^[A-Za-z0-9]*$/.test(player.username)) {
                 socket.disconnect();
             }
-            else{
+            else {
                 console.log(`[Joining] ${player.username} join la room ` + player.roomId);
                 player.username = xss(player.username);
                 player.host = false;
                 player.roomId = parseInt(player.roomId);
                 p = player;
                 r = rooms.find((room) => { return p.roomId === room.id; });
-                p.free = r.players[0].free;
-                p.locked = r.players[0].locked;
-                p.buzzed = r.players[0].buzzed;
-                r.players.push(player);
-                io.to(p.roomId).emit("new player", p);
-                socket.join(p.roomId);
-                io.to(socket.id).emit("player init", r, p);
+                if (!r) {
+                    socket.disconnect();
+                }
+                else {
+                    p.free = r.players[0].free;
+                    p.locked = r.players[0].locked;
+                    p.buzzed = r.players[0].buzzed;
+                    r.players.push(player);
+                    io.to(p.roomId).emit("new player", p);
+                    socket.join(p.roomId);
+                    io.to(socket.id).emit("player init", r, p);
+                }
             }
         });
 
@@ -142,8 +147,10 @@ export default function (io) {
                 console.log(`Bye bye ${p.username}`);
 
                 io.to(p.roomId).emit("remove player", p);
-                r.players = r.players.filter((player) => player.username !== p.username);
-                console.log(r);
+                if (r){
+                    r.players = r.players.filter((player) => player.username !== p.username);
+                }
+                
             }
             else if (p && p.host) {
                 console.log(`Bye bye host ${p.username}`);
