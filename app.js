@@ -13,7 +13,6 @@ const routeBuzzer=routeBuzzerFunction(io);
 /**
  * @type {Socket}
  */
-
 app.use(express.urlencoded({
     extended: true
   }));
