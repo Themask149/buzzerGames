@@ -4,7 +4,8 @@
   "description": "I tried to make a website that is focus on games about buzzers",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
   },
   "type": "module",
   "repository": {
