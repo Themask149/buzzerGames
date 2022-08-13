@@ -127,6 +127,9 @@ export default function (io) {
                     }
                 }
             }
+            else if (p.free  && !p.locked&&!p.buzzed){
+                
+            }
             else {
                 io.in(p.roomId).emit("error", "Etat du buzzer non stable");
                 io.in(p.roomId).disconnectSockets();
