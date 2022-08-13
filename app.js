@@ -26,7 +26,7 @@ app.use(express.json());
  app.use('/apps/buzzer',routeBuzzer);
 
  
- http.listen(port, function(err){
+ http.listen(process.env.PORT || port, function(err){
      if (err) console.log("Error in server setup");
      console.log("Server listening on Port", port);
  });
