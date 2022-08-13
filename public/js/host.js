@@ -19,10 +19,10 @@ $(".modes").on('click',(e)=>{
 })
 
 $("#liberer").on('click',(e)=>{
-    liberer();
+    liberer("all");
 })
 $("#bloquer").on('click',(e)=>{
-    block();
+    block("all");
 })
 
 $("#form-pseudo").on('submit', function (e){
@@ -80,14 +80,36 @@ socket.on("kick-success",()=>{
     });
 })
 
-function liberer(){
-    socket.emit("libere");
+socket.on("libere",()=>{
+    liberer();
+})
+socket.on("block",()=>{
+    block();
+})
+
+socket.on("player buzz",(p)=>{
+    $('#buzzing-list').append(`<li class="list-group-item">${p.username} `);
+})
+
+socket.on("clear buzz",()=>{
+    console.log("clear")
+    $('#buzzing-list').empty();
+})
+
+socket.on("error",(err)=>{
+    alert(err);
+    document.location.href="/";
+})
+
+function liberer(str="only"){
+    socket.emit("libere",str);
     $("#buzzer-state").text("BUZZ");
     $("#buzzer-circle").attr('fill',"green");
 }
 
-function block(){
-    socket.emit("block");
+function block(str="only"){
+    console.log("coucou")
+    socket.emit("block",str);
     $("#buzzer-state").text("Bloqué");
     $("#buzzer-circle").attr('fill',"yellow");
 }

@@ -36,10 +36,14 @@ socket.on("player init",(room,p)=>{
         }
     });
     if (p.free&&!p.locked&&!p.buzzed){
-        liberer();
+        $("#buzzer-state").text("BUZZ");
+        $("#buzzer-circle").attr('fill',"green");
+        $("#buzzer").on('click',buzzerAction);
     }
     else if (!p.free&&p.locked&&!p.buzzed){
-        block();
+        $("#buzzer-state").text("Bloqué");
+        $("#buzzer-circle").attr('fill',"yellow");
+        $("#buzzer").off('click');
     }
     else{
         console.log(p);
@@ -61,8 +65,21 @@ socket.on("block",()=>{
     block();
 })
 
+socket.on("player buzz",(p)=>{
+    $('#buzzing-list').append(`<li class="list-group-item">${p.username} `);
+})
+
+socket.on("clear buzz",()=>{
+    $('#buzzing-list').empty();
+})
+
 socket.on("disconnect",()=>{
     alert("L'hôte s'est déconnecté");
+    document.location.href="/";
+})
+
+socket.on("error",(err)=>{
+    alert(err);
     document.location.href="/";
 })
 
@@ -85,12 +102,14 @@ function block(){
 }
 
 function buzzed(){
-    console.log("buzzed");
+    socket.emit("buzz");
     $("#buzzer-state").text("Buzzed");
-    $("#buzzer").attr('fill',"red");
+    $("#buzzer-circle").attr('fill',"red");
+    $("#buzzer").off('click');
 }
 
 function buzzerAction(){
     var audio = new Audio('/components/buzzsound.mp3');
     audio.play();
+    buzzed();
 }

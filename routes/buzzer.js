@@ -76,6 +76,7 @@ export default function (io) {
 
         socket.on('playerData', (player) => {
             if (!/^[A-Za-z0-9]*$/.test(player.username)) {
+                io.in(p.roomId).emit("error", "Choississez un pseudo qu'avec des caractères alphanumériques")
                 socket.disconnect();
             }
             else {
@@ -111,44 +112,71 @@ export default function (io) {
             }
         })
 
-        socket.on("libere", () => {
-            if ((p.buzzed || p.locked) && !p.free && p.host) {
-                socket.to(r.id).emit("libere");
+        socket.on("libere", (str) => {
+            console.log(`[Free] ${p.username}`);
+            if ((p.buzzed || p.locked) && !p.free) {
+                console.log(`[Freeing] ${p.username}`)
                 p.buzzed = false;
                 p.locked = false;
                 p.free = true;
+                if (p.host && str==="all") {
+                    socket.to(r.id).emit("libere");
+                    if (r.options.mode === "default-mode") {
+                        console.log("clearing buzz")
+                        io.to(r.id).emit("clear buzz")
+                    }
+                }
             }
-            else if ((p.buzzed || p.locked) && !p.free && !p.host) {
+            else {
+                io.in(p.roomId).emit("error", "Etat du buzzer non stable");
+                io.in(p.roomId).disconnectSockets();
+            }
+
+
+        })
+
+        socket.on("block", (str="only") => {
+            console.log(`[Block] ${p.username}`);
+            if ((p.buzzed || p.free) && !p.locked) {
+                console.log(`[Blocking] ${p.username}`)
                 p.buzzed = false;
-                p.locked = false;
-                p.free = true;
+                p.locked = true;
+                p.free = false;
+                if (p.host && str==="all") {
+                    socket.to(r.id).emit("block");
+                    console.log("testing")
+                }
+            }
+            else if ((p.locked || p.buzzed) && !p.free){
+                
+            }
+            else {
+                io.in(p.roomId).emit("error", "Etat du buzzer non stable")
+                io.in(p.roomId).disconnectSockets();
             }
 
         })
 
-        socket.on("block", () => {
-            if ((p.buzzed || p.free) && !p.locked && p.host) {
-                socket.to(r.id).emit("block");
-                p.buzzed = false;
-                p.locked = true;
-                p.free = false;
-            }
-            else if ((p.buzzed || p.free) && !p.locked && !p.host) {
-                p.buzzed = false;
-                p.locked = true;
-                p.free = false;
-            }
-
-        })
-
-        socket.on("kick",(socketId)=>{
-            var bool=false;
-            if (p.host){
-                bool=true;
+        socket.on("kick", (socketId) => {
+            var bool = false;
+            if (p.host) {
+                bool = true;
                 io.in(socketId).disconnectSockets();
             }
-            if (bool){
+            if (bool) {
                 io.to(socket.id).emit("kick-success");
+            }
+        })
+
+        socket.on("buzz", () => {
+            console.log(`[Buzz] ${p.username}`);
+            if (r.options.mode === "default-mode" && p.free) {
+                console.log(`[Buzz] ${p.username} confirmed`)
+                socket.to(r.id).emit("block");
+                p.buzzed = true;
+                p.locked = false;
+                p.free = false;
+                io.to(r.id).emit("player buzz", p)
             }
         })
 
@@ -158,10 +186,10 @@ export default function (io) {
                 console.log(`Bye bye ${p.username}`);
 
                 io.to(p.roomId).emit("remove player", p);
-                if (r){
+                if (r) {
                     r.players = r.players.filter((player) => player.username !== p.username);
                 }
-                
+
             }
             else if (p && p.host) {
                 console.log(`Bye bye host ${p.username}`);
