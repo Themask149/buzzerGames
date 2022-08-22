@@ -90,6 +90,12 @@ function liberer(){
     $("#buzzer-state").text("BUZZ");
     $("#buzzer-circle").attr('fill',"green");
     $("#buzzer").on('click',buzzerAction);
+    $(document).keydown(function(e){
+            if (e.code === "Space"){
+    
+                buzzerAction();
+            }
+        });
     socket.emit("libere")  
 }
 
@@ -98,6 +104,7 @@ function block(){
     $("#buzzer-state").text("Bloqué");
     $("#buzzer-circle").attr('fill',"yellow");
     $("#buzzer").off('click');
+    $(document).off('keydown');
     socket.emit("block")
 }
 
@@ -105,7 +112,7 @@ function buzzed(){
     socket.emit("buzz");
     $("#buzzer-state").text("Buzzed");
     $("#buzzer-circle").attr('fill',"red");
-    $("#buzzer").off('click');
+    $(document).off('keydown');
 }
 
 function buzzerAction(){

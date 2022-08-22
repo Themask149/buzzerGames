@@ -105,7 +105,7 @@ export default function (io) {
             console.log("Receiving changeMode")
 
             if (isHost(socket.id, p, r)) {
-                console.log(`[Changing mode] from ${r.options.mode} to ${mode}`)
+                console.log(`[Changing mode ${r.id}] from ${r.options.mode} to ${mode}`)
                 r.options.mode = mode;
                 socket.emit("modeChanged")
                 console.log(rooms)
@@ -113,9 +113,9 @@ export default function (io) {
         })
 
         socket.on("libere", (str) => {
-            console.log(`[Free] ${p.username}`);
+            console.log(`[Free ${r.id}] ${p.username}`);
             if ((p.buzzed || p.locked) && !p.free) {
-                console.log(`[Freeing] ${p.username}`)
+                console.log(`[Freeing ${r.id}] ${p.username}`)
                 p.buzzed = false;
                 p.locked = false;
                 p.free = true;
@@ -139,9 +139,9 @@ export default function (io) {
         })
 
         socket.on("block", (str="only") => {
-            console.log(`[Block] ${p.username}`);
+            console.log(`[Block ${r.id}] ${p.username}`);
             if ((p.buzzed || p.free) && !p.locked) {
-                console.log(`[Blocking] ${p.username}`)
+                console.log(`[Blocking ${r.id}] ${p.username}`)
                 p.buzzed = false;
                 p.locked = true;
                 p.free = false;
@@ -172,9 +172,10 @@ export default function (io) {
         })
 
         socket.on("buzz", () => {
-            console.log(`[Buzz] ${p.username}`);
+            console.log(`[Buzz ${r.id}] ${p.username}`);
+            console.log(p);
             if (r.options.mode === "default-mode" && p.free) {
-                console.log(`[Buzz] ${p.username} confirmed`)
+                console.log(`[Buzz ${r.id}] ${p.username} confirmed`)
                 socket.to(r.id).emit("block");
                 p.buzzed = true;
                 p.locked = false;

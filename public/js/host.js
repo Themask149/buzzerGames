@@ -25,6 +25,17 @@ $("#bloquer").on('click',(e)=>{
     block("all");
 })
 
+$(function(){
+    $(document).keydown(function(e){
+        if (e.key ==="b"){
+            block("all");
+        }
+        if (e.key ==="l"){
+            liberer("all");
+        }
+    })
+})
+
 $("#form-pseudo").on('submit', function (e){
     e.preventDefault();
     player.username= $('#username').val();
@@ -96,6 +107,11 @@ socket.on("clear buzz",()=>{
     $('#buzzing-list').empty();
 })
 
+socket.on("disconnect",()=>{
+    alert("L'hôte s'est déconnecté");
+    document.location.href="/";
+})
+
 socket.on("error",(err)=>{
     alert(err);
     document.location.href="/";
@@ -108,7 +124,6 @@ function liberer(str="only"){
 }
 
 function block(str="only"){
-    console.log("coucou")
     socket.emit("block",str);
     $("#buzzer-state").text("Bloqué");
     $("#buzzer-circle").attr('fill',"yellow");
