@@ -51,37 +51,37 @@ socket.on("player init",(room,p)=>{
 });
 
 socket.on("remove player",(player)=>{
-    console.log(`Bye bye ${player.username}`)
+    console.log(`Bye bye ${player.username}`);
     $(`#${player.username}`).remove();
-})
+});
 socket.on("new player",(player)=>{
     $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} `);
 });
 
 socket.on("libere",()=>{
     liberer();
-})
+});
 socket.on("block",()=>{
     block();
-})
+});
 
 socket.on("player buzz",(p)=>{
     $('#buzzing-list').append(`<li class="list-group-item">${p.username} `);
-})
+});
 
 socket.on("clear buzz",()=>{
     $('#buzzing-list').empty();
-})
+});
 
 socket.on("disconnect",()=>{
     alert("L'hôte s'est déconnecté");
     document.location.href="/";
-})
+});
 
 socket.on("error",(err)=>{
     alert(err);
     document.location.href="/";
-})
+});
 
 
 
@@ -97,6 +97,7 @@ function liberer(){
             }
         });
     socket.emit("libere")  
+
 }
 
 function block(){
@@ -106,6 +107,7 @@ function block(){
     $("#buzzer").off('click');
     $(document).off('keydown');
     socket.emit("block")
+
 }
 
 function buzzed(){

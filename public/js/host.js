@@ -14,16 +14,16 @@ const socket = io();
 $(".modes").on('click',(e)=>{
     e.preventDefault();
     socket.emit("changeMode",e.target.id);
-    $(".modes").css("background-color", "")
+    $(".modes").css("background-color", "");
     $(e.target.id).css("background-color", "blue");
-})
+});
 
 $("#liberer").on('click',(e)=>{
     liberer("all");
-})
+});
 $("#bloquer").on('click',(e)=>{
     block("all");
-})
+});
 
 $(function(){
     $(document).keydown(function(e){
@@ -53,7 +53,7 @@ $("#form-pseudo").on('submit', function (e){
         else{
             $('#settings').show("slow");
         }
-    })
+    });
 
     socket.emit("playerDataHost",player);
 });
@@ -69,43 +69,43 @@ socket.on("new player",(player)=>{
         console.log('kick');
         console.log(e.target.id);
         socket.emit("kick",e.target.id);
-    })
+    });
 });
 
 socket.on("remove player",(player)=>{
-    console.log(`Bye bye ${player.username}`)
+    console.log(`Bye bye ${player.username}`);
     $(`#${player.username}`).remove();
-})
+});
 
 socket.on("modeChanged",()=>{
     $("#success-alert").html("<strong>Mode changed </strong>");
     $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
         $("#success-alert").slideUp(500);
     });
-})
+});
 
 socket.on("kick-success",()=>{
     $("#success-alert").html("<strong>Played kicked </strong>");
     $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
         $("#success-alert").slideUp(500);
     });
-})
+});
 
 socket.on("libere",()=>{
     liberer();
-})
+});
 socket.on("block",()=>{
     block();
-})
+});
 
 socket.on("player buzz",(p)=>{
     $('#buzzing-list').append(`<li class="list-group-item">${p.username} `);
-})
+});
 
 socket.on("clear buzz",()=>{
-    console.log("clear")
+    console.log("clear");
     $('#buzzing-list').empty();
-})
+});
 
 socket.on("disconnect",()=>{
     alert("L'hôte s'est déconnecté");
@@ -115,7 +115,7 @@ socket.on("disconnect",()=>{
 socket.on("error",(err)=>{
     alert(err);
     document.location.href="/";
-})
+});
 
 function liberer(str="only"){
     socket.emit("libere",str);

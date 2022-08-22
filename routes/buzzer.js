@@ -76,7 +76,7 @@ export default function (io) {
 
         socket.on('playerData', (player) => {
             if (!/^[A-Za-z0-9]*$/.test(player.username)) {
-                io.in(p.roomId).emit("error", "Choississez un pseudo qu'avec des caractères alphanumériques")
+                io.in(p.roomId).emit("error", "Choississez un pseudo qu'avec des caractères alphanumériques");
                 socket.disconnect();
             }
             else {
@@ -102,15 +102,15 @@ export default function (io) {
         });
 
         socket.on("changeMode", (mode) => {
-            console.log("Receiving changeMode")
+            console.log("Receiving changeMode");
 
             if (isHost(socket.id, p, r)) {
                 console.log(`[Changing mode ${r.id}] from ${r.options.mode} to ${mode}`)
                 r.options.mode = mode;
-                socket.emit("modeChanged")
-                console.log(rooms)
+                socket.emit("modeChanged");
+                console.log(rooms);
             }
-        })
+        });
 
         socket.on("libere", (str) => {
             console.log(`[Free ${r.id}] ${p.username}`);
@@ -122,8 +122,8 @@ export default function (io) {
                 if (p.host && str==="all") {
                     socket.to(r.id).emit("libere");
                     if (r.options.mode === "default-mode") {
-                        console.log("clearing buzz")
-                        io.to(r.id).emit("clear buzz")
+                        console.log("clearing buzz");
+                        io.to(r.id).emit("clear buzz");
                     }
                 }
             }
@@ -136,7 +136,7 @@ export default function (io) {
             }
 
 
-        })
+        });
 
         socket.on("block", (str="only") => {
             console.log(`[Block ${r.id}] ${p.username}`);
@@ -147,18 +147,18 @@ export default function (io) {
                 p.free = false;
                 if (p.host && str==="all") {
                     socket.to(r.id).emit("block");
-                    console.log("testing")
+                    console.log("testing");
                 }
             }
             else if ((p.locked || p.buzzed) && !p.free){
                 
             }
             else {
-                io.in(p.roomId).emit("error", "Etat du buzzer non stable")
+                io.in(p.roomId).emit("error", "Etat du buzzer non stable");
                 io.in(p.roomId).disconnectSockets();
             }
 
-        })
+        });
 
         socket.on("kick", (socketId) => {
             var bool = false;
@@ -169,7 +169,7 @@ export default function (io) {
             if (bool) {
                 io.to(socket.id).emit("kick-success");
             }
-        })
+        });
 
         socket.on("buzz", () => {
             console.log(`[Buzz ${r.id}] ${p.username}`);
@@ -180,12 +180,12 @@ export default function (io) {
                 p.buzzed = true;
                 p.locked = false;
                 p.free = false;
-                io.to(r.id).emit("player buzz", p)
+                io.to(r.id).emit("player buzz", p);
             }
-        })
+        });
 
         socket.on("disconnect", () => {
-            console.log(`[Disconnection] ${socket.id}`)
+            console.log(`[Disconnection] ${socket.id}`);
             if (p && !p.host) {
                 console.log(`Bye bye ${p.username}`);
 
@@ -201,14 +201,14 @@ export default function (io) {
                 rooms = rooms.filter((room) => room.id = !p.roomId);
                 listeCodes = listeCodes.filter((code) => code !== p.roomId);
             }
-        })
+        });
 
 
     });
 
     function isHost(socketId, player, room) {
         if (room) {
-            player = room.players.find((player) => { return player.socketId === socketId });
+            player = room.players.find((player) => { return player.socketId === socketId; });
             return player.host;
         }
         else return false;
