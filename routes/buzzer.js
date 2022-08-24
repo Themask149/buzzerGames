@@ -14,7 +14,7 @@ export default function (io) {
         res.render('buzzer/host', { code: 10000, players: [{ username: "test" }, { username: "test2" }, { username: "test3" }] });
     });
 
-    var rooms = [{ players: [], id: 123456789, mode: "default" }];
+    var rooms = [{ players: [], id: 123456789,}];
     var listeCodes = [];
 
     router.post('/', (req, res) => {
@@ -64,7 +64,7 @@ export default function (io) {
                 player.locked = true;
                 player.free = false;
                 p = player;
-                r = { players: [p], id: player.roomId, options: { mode: "default-mode" } };
+                r = { players: [p], id: player.roomId, options: { mode: "default-mode", point: false } };
                 rooms.push(r);
                 socket.join(p.roomId);
 
@@ -84,6 +84,7 @@ export default function (io) {
                 player.username = xss(player.username);
                 player.host = false;
                 player.roomId = parseInt(player.roomId);
+                player.points=0;
                 p = player;
                 r = rooms.find((room) => { return p.roomId === room.id; });
                 if (!r) {
@@ -121,10 +122,8 @@ export default function (io) {
                 p.free = true;
                 if (p.host && str==="all") {
                     socket.to(r.id).emit("libere");
-                    if (r.options.mode === "default-mode") {
-                        console.log("clearing buzz");
-                        io.to(r.id).emit("clear buzz");
-                    }
+                    console.log("clearing buzz");
+                    io.to(r.id).emit("clear buzz");
                 }
             }
             else if (p.free  && !p.locked&&!p.buzzed){
@@ -173,14 +172,27 @@ export default function (io) {
 
         socket.on("buzz", () => {
             console.log(`[Buzz ${r.id}] ${p.username}`);
-            console.log(p);
-            if (r.options.mode === "default-mode" && p.free) {
-                console.log(`[Buzz ${r.id}] ${p.username} confirmed`)
+            if (r.options.mode === "default-mode" && p.free && !p.host) {
+                console.log(`[Buzz ${r.id}] ${p.username} confirmed default`);
                 socket.to(r.id).emit("block");
+                io.to(r.players[0].socketId).emit("buzzed");
                 p.buzzed = true;
                 p.locked = false;
                 p.free = false;
                 io.to(r.id).emit("player buzz", p);
+            }
+            else if (r.options.mode === "multi-mode" && p.free && !p.host){
+                console.log(`[Buzz ${r.id}] ${p.username} confirmed multi`);
+                io.to(r.players[0].socketId).emit("buzzed");
+                p.buzzed = true;
+                p.locked = false;
+                p.free = false;
+                io.to(r.id).emit("player buzz", p);
+            }
+            else if (p.host){
+                p.buzzed = true;
+                p.locked = false;
+                p.free = false;
             }
         });
 
@@ -202,6 +214,18 @@ export default function (io) {
                 listeCodes = listeCodes.filter((code) => code !== p.roomId);
             }
         });
+
+        socket.on("changePointsMode",(bool)=>{
+            if (bool != r.options.point){
+                r.options.point=bool
+                if (bool){
+
+                }
+                else{
+
+                }
+            }
+        })
 
 
     });

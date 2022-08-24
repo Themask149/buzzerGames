@@ -14,8 +14,8 @@ const socket = io();
 $(".modes").on('click',(e)=>{
     e.preventDefault();
     socket.emit("changeMode",e.target.id);
-    $(".modes").css("background-color", "");
-    $(e.target.id).css("background-color", "blue");
+    $(".modes").removeClass('text-light bg-dark');
+    $(`#${e.target.id}`).addClass('text-light bg-dark');
 });
 
 $("#liberer").on('click',(e)=>{
@@ -23,6 +23,10 @@ $("#liberer").on('click',(e)=>{
 });
 $("#bloquer").on('click',(e)=>{
     block("all");
+});
+
+$('#btn-points').on('change',(e)=>{
+    socket.emit("changePointsMode",$('#btn-points').is(':checked'));
 });
 
 $(function(){
@@ -63,7 +67,7 @@ socket.on('host launch',(player)=>{
 });
 
 socket.on("new player",(player)=>{
-    $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${player.socketId}" class="btn btn-secondary kick">kick</button> </div> </li>`);
+    $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${player.socketId}" class="btn btn-secondary kick">kick</button> </div> <span class="mx-2 score"  style="display: none;"> </span></li>`);
     $('.kick').on('click',(e)=>{
         e.preventDefault();
         console.log('kick');
@@ -97,6 +101,10 @@ socket.on("libere",()=>{
 socket.on("block",()=>{
     block();
 });
+socket.on("buzzed",()=>{
+    soundPlay();
+    buzzed();
+})
 
 socket.on("player buzz",(p)=>{
     $('#buzzing-list').append(`<li class="list-group-item">${p.username} `);
@@ -128,3 +136,15 @@ function block(str="only"){
     $("#buzzer-state").text("Bloqué");
     $("#buzzer-circle").attr('fill',"yellow");
 }
+
+function buzzed(){
+    socket.emit("buzz");
+    $("#buzzer-state").text("Buzzed");
+    $("#buzzer-circle").attr('fill',"red");
+}
+
+function soundPlay(){
+    var audio = new Audio('/components/buzzsound.mp3');
+    audio.play();
+}
+

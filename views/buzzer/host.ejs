@@ -4,7 +4,7 @@
 
     <body>
         <%- include('../partials/navbar'); %>
-            
+
 
             <h1 class="text-center display-4">Game Code: <%= code %>
             </h1>
@@ -28,68 +28,78 @@
                 <button type="button" class="btn btn-secondary btn-lg mx-auto" style="display: none;"
                     id="settings-button">Options</button>
             </div>
-            <div class="row text-center border-top border-bottom" id="settings" style="display: none;">
-                <h1>Example heading <span class="badge bg-secondary">New</span></h1>
-                <div class="row">
-                    <div class="dropdown">
+            <div class="row text-center border-top border-bottom mx-auto my-2" id="settings" style="display: none;">
+                <h1 class="mx-auto my-2">Options</h1>
+                <div class="row mx-auto my-2">
+                    <div class="col-4"></div>
+                    <div class="dropdown col-lg-2">
                         <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton1"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            Mode
+                            Mode de buzz
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                            <li><a class="dropdown-item modes" id="default-mode">1 buzz à la fois</a></li>
+                            <li><a class="dropdown-item modes text-light bg-dark" id="default-mode">1 buzz à la fois</a>
+                            </li>
+                            <li><a class="dropdown-item modes" id="multi-mode">Plusieurs buzzs à la fois</a></li>
                         </ul>
                     </div>
+                    <div class="col-lg-2">
+                        <input type="checkbox" class="btn-check" id="btn-points">
+                        <label class="btn btn-outline-success" for="btn-points">Activer points</label><br>
+                    </div>
+                    <div class="col-4"></div>
                 </div>
             </div>
             <div id="app-div" style="display: none;">
-            <div class="row">
-                <div id="buzzer-div" class="mx-auto text-center col-lg-4 col-sm-6 border-right"
-                    style=" border-right: 1px solid #ccc;">
-                    <h2>Etat du Buzzer</h2>
-                    <svg height="90%" width="90%" class="mx-auto" id="buzzer">
-                        <circle cx="50%" cy="50%" r="5em" stroke="black" stroke-width="3" fill="yellow"
-                            id="buzzer-circle" />
-                        <text x="50%" y="50%" text-anchor="middle" class="fs-1" id="buzzer-state">Bloqué</text>
-                    </svg>
+                <div class="row">
+                    <div id="buzzer-div" class="mx-auto text-center col-lg-4 col-sm-6 border-right"
+                        style=" border-right: 1px solid #ccc;">
+                        <h2>Etat du Buzzer</h2>
+                        <svg height="90%" width="90%" class="mx-auto" id="buzzer">
+                            <circle cx="50%" cy="50%" r="5em" stroke="black" stroke-width="3" fill="yellow"
+                                id="buzzer-circle" />
+                            <text x="50%" y="50%" text-anchor="middle" class="fs-1" id="buzzer-state">Bloqué</text>
+                        </svg>
+                    </div>
+                    <div id="buttons" class="mx-auto my-2 text-center col-lg-2 col-sm-6 border-right"
+                        style=" border-right: 1px solid #ccc;">
+                        <h2>Commandes</h2>
+                        <button type="button" class="btn btn-warning" id="bloquer">Bloquer (B)</button>
+                        <button type="button" class="btn btn-success" id="liberer">Libérer (L)</button>
+                        <button type="button" class="btn btn-success" id="liberer" style="display: none;">Reset
+                            (R)</button>
+                    </div>
+                    <div id="buzzlist-div " class="mx-auto text-center col pt-5" style="text-align:center;">
+                        <div class="card mx-auto col-8">
+                            <div class="card-header">
+                                Liste des Buzz
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group" id="buzzing-list">
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-                <div id="buttons" class="mx-auto text-center col-lg-2 col-sm-6 border-right"
-                    style=" border-right: 1px solid #ccc;">
-                    <h2>Commandes</h2>
-                    <button type="button" class="btn btn-warning" id="bloquer">Bloquer (B)</button>
-                    <button type="button" class="btn btn-success" id="liberer">Libérer (L)</button>
-                </div>
-                <div id="buzzlist-div " class="mx-auto text-center col pt-5" style="text-align:center;">
+                <div id="players-div " class="mx-auto text-center col pt-5" style="text-align:center;">
                     <div class="card mx-auto col-8">
                         <div class="card-header">
-                            Liste des Buzz
+                            Liste des joueurs
                         </div>
                         <div class="card-body">
-                            <ul class="list-group" id="buzzing-list">
+                            <ul class="list-group" id="player-list">
 
                             </ul>
                         </div>
                     </div>
                 </div>
-                
             </div>
-            <div id="players-div " class="mx-auto text-center col pt-5" style="text-align:center;">
-                <div class="card mx-auto col-8">
-                    <div class="card-header">
-                        Liste des joueurs
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group" id="player-list">
+            <div class="alert alert-success mt-5" style="display: none;" id="success-alert">
 
-                        </ul>
-                    </div>
-                </div>
             </div>
-        </div>
-        <div class="alert alert-success mt-5" style="display: none;" id="success-alert">
-                
-        </div>
-            
+
 
 
             <%- include('../partials/script'); %>

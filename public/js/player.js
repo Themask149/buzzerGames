@@ -6,7 +6,8 @@ var player = {
     socketId: "",
     buzzed:false,
     locked:true,
-    free:false
+    free:false,
+    points:0
 };
 
 const socket = io();
@@ -32,7 +33,7 @@ socket.on("player init",(room,p)=>{
             $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} (Host) </li>`);
         }
         else{
-            $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} `);
+            $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} <span class="mx-2 score"  style="display: none;"> </span></li>`);
         }
     });
     if (p.free&&!p.locked&&!p.buzzed){
@@ -55,7 +56,7 @@ socket.on("remove player",(player)=>{
     $(`#${player.username}`).remove();
 });
 socket.on("new player",(player)=>{
-    $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} `);
+    $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} <span class="mx-2 score"  style="display: none;"> </span></li>`);
 });
 
 socket.on("libere",()=>{
@@ -66,7 +67,7 @@ socket.on("block",()=>{
 });
 
 socket.on("player buzz",(p)=>{
-    $('#buzzing-list').append(`<li class="list-group-item">${p.username} `);
+    $('#buzzing-list').append(`<li class="list-group-item">${p.username} </li> `);
 });
 
 socket.on("clear buzz",()=>{
