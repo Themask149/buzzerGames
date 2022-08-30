@@ -55,8 +55,9 @@ socket.on("remove player",(player)=>{
     console.log(`Bye bye ${player.username}`);
     $(`#${player.username}`).remove();
 });
-socket.on("new player",(player)=>{
+socket.on("new player",(player,bool)=>{
     $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} <span class="mx-2 score"  style="display: none;"> </span></li>`);
+    afficheScore(bool,player);
 });
 
 socket.on("libere",()=>{
@@ -66,13 +67,18 @@ socket.on("block",()=>{
     block();
 });
 
-socket.on("player buzz",(p)=>{
+socket.on("player buzz",(p,bool)=>{
     $('#buzzing-list').append(`<li class="list-group-item">${p.username} </li> `);
 });
 
 socket.on("clear buzz",()=>{
     $('#buzzing-list').empty();
 });
+
+socket.on("update score",(p)=>{
+    var score = $(`#${p.username}`).children('.score');
+    score.text(p.points);
+})
 
 socket.on("disconnect",()=>{
     alert("L'hôte s'est déconnecté");
@@ -82,6 +88,18 @@ socket.on("disconnect",()=>{
 socket.on("error",(err)=>{
     alert(err);
     document.location.href="/";
+});
+
+socket.on("show scores",(r)=>{
+    r.players.forEach((p)=>{
+        afficheScore(true,p)
+    })
+});
+
+socket.on("unshow scores",(r)=>{
+    r.players.forEach((p)=>{
+        afficheScore(false,p)
+    })
 });
 
 
@@ -122,4 +140,17 @@ function buzzerAction(){
     var audio = new Audio('/components/buzzsound.mp3');
     audio.play();
     buzzed();
+}
+
+function afficheScore(bool,p){
+    if (bool){
+        var score = $(`#${p.username}`).children('.score');
+        score.show();
+        score.text(p.points);
+    }
+    else{
+        var score = $(`#${p.username}`).children('.score');
+        score.hide();
+    }
+    
 }

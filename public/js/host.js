@@ -11,6 +11,8 @@ const player = {
 
 const socket = io();
 
+
+
 $(".modes").on('click',(e)=>{
     e.preventDefault();
     socket.emit("changeMode",e.target.id);
@@ -24,6 +26,10 @@ $("#liberer").on('click',(e)=>{
 $("#bloquer").on('click',(e)=>{
     block("all");
 });
+$('#reset').on('click',(e)=>{
+    console.log("reset")
+    socket.emit("resetPoints");
+})
 
 $('#btn-points').on('change',(e)=>{
     socket.emit("changePointsMode",$('#btn-points').is(':checked'));
@@ -66,8 +72,9 @@ socket.on('host launch',(player)=>{
     $('#player-list').append(`<li class="list-group-item">${player.username} (Host) </li>`);
 });
 
-socket.on("new player",(player)=>{
+socket.on("new player",(player,bool)=>{
     $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${player.socketId}" class="btn btn-secondary kick">kick</button> </div> <span class="mx-2 score"  style="display: none;"> </span></li>`);
+    afficheScore(bool,player)
     $('.kick').on('click',(e)=>{
         e.preventDefault();
         console.log('kick');
@@ -106,9 +113,49 @@ socket.on("buzzed",()=>{
     buzzed();
 })
 
-socket.on("player buzz",(p)=>{
-    $('#buzzing-list').append(`<li class="list-group-item">${p.username} `);
+socket.on("player buzz",(p,bool)=>{
+    var htmlcode = `<li class="list-group-item"  >${p.username}  `
+    if (bool){
+        htmlcode += `<i class="fa-solid fa-circle-check check-buzz" style="color:green" data-username="${p.username}" id="${p.username}-check" data-bs-toggle="modal" data-bs-target="#modalGivePoints"></i>`
+    }
+    htmlcode += '</li>';
+    $('#buzzing-list').append(htmlcode);
+    $(`#${p.username}-check`).on('click',(e)=>{
+        $('#pseudo-modal').text(`${p.username}`);
+        $('#btn-validate').attr("data-username", `${p.username}`)
+        $('#btn-validate').on('click',(e)=>{
+            validerPoints(e.target)
+        })
+    })
 });
+
+socket.on("show scores",(r)=>{
+    $('#reset').show("slow");
+    r.players.forEach((p)=>{
+        afficheScore(true,p);
+    })
+    $("#success-alert").html("<strong>Points remis à 0 </strong>");
+    $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
+        $("#success-alert").slideUp(500);
+    });
+
+});
+
+socket.on("unshow scores",(r)=>{
+    $('#reset').hide();
+    r.players.forEach((p)=>{
+        afficheScore(false,p);
+    });
+    $("#success-alert").html("<strong>Points désactivés </strong>");
+    $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
+        $("#success-alert").slideUp(500);
+    });
+});
+
+socket.on("update score",(p)=>{
+    var score = $(`#${p.username}`).children('.score');
+    score.text(p.points);
+})
 
 socket.on("clear buzz",()=>{
     console.log("clear");
@@ -146,5 +193,24 @@ function buzzed(){
 function soundPlay(){
     var audio = new Audio('/components/buzzsound.mp3');
     audio.play();
+}
+
+function afficheScore(bool,p){
+    if (bool){
+        var score = $(`#${p.username}`).children('.score');
+        score.show();
+        score.text(p.points);
+    }
+    else{
+        var score = $(`#${p.username}`).children('.score');
+        score.hide();
+    }
+    
+}
+
+function validerPoints(target){
+    $('#btn-validate').off('click');
+    liberer("all");
+    socket.emit("change points",target.dataset.username,$("#score-input").val())
 }
 

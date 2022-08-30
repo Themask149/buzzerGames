@@ -95,7 +95,7 @@ export default function (io) {
                     p.locked = r.players[0].locked;
                     p.buzzed = r.players[0].buzzed;
                     r.players.push(player);
-                    io.to(p.roomId).emit("new player", p);
+                    io.to(p.roomId).emit("new player", p,r.options.point);
                     socket.join(p.roomId);
                     io.to(socket.id).emit("player init", r, p);
                 }
@@ -105,7 +105,7 @@ export default function (io) {
         socket.on("changeMode", (mode) => {
             console.log("Receiving changeMode");
 
-            if (isHost(socket.id, p, r)) {
+            if (p.host) {
                 console.log(`[Changing mode ${r.id}] from ${r.options.mode} to ${mode}`)
                 r.options.mode = mode;
                 socket.emit("modeChanged");
@@ -179,7 +179,7 @@ export default function (io) {
                 p.buzzed = true;
                 p.locked = false;
                 p.free = false;
-                io.to(r.id).emit("player buzz", p);
+                io.to(r.id).emit("player buzz", p, r.options.point);
             }
             else if (r.options.mode === "multi-mode" && p.free && !p.host){
                 console.log(`[Buzz ${r.id}] ${p.username} confirmed multi`);
@@ -187,7 +187,7 @@ export default function (io) {
                 p.buzzed = true;
                 p.locked = false;
                 p.free = false;
-                io.to(r.id).emit("player buzz", p);
+                io.to(r.id).emit("player buzz", p, r.options.point);
             }
             else if (p.host){
                 p.buzzed = true;
@@ -195,6 +195,32 @@ export default function (io) {
                 p.free = false;
             }
         });
+
+        socket.on("changePointsMode",(bool)=>{
+            if (bool != r.options.point){
+                r.options.point=bool
+                if (bool){
+                    resetPoints(r);
+                    io.to(p.roomId).emit("show scores", r)
+                }
+                else{
+                    io.to(p.roomId).emit("unshow scores", r)
+                }
+            }
+        })
+
+        socket.on('resetPoints',()=>{
+            resetPoints(r);
+            io.to(p.roomId).emit("show scores",r)
+        });
+
+        socket.on('change points', (username,points)=>{
+            console.log(username);
+            console.log(points);
+            var player = r.players.find((player) => { return player.username === username; });
+            player.points += parseInt(points);
+            io.to(p.roomId).emit("update score",player);
+        })
 
         socket.on("disconnect", () => {
             console.log(`[Disconnection] ${socket.id}`);
@@ -215,28 +241,16 @@ export default function (io) {
             }
         });
 
-        socket.on("changePointsMode",(bool)=>{
-            if (bool != r.options.point){
-                r.options.point=bool
-                if (bool){
-
-                }
-                else{
-
-                }
-            }
-        })
+        
 
 
     });
 
-    function isHost(socketId, player, room) {
-        if (room) {
-            player = room.players.find((player) => { return player.socketId === socketId; });
-            return player.host;
-        }
-        else return false;
-
+    
+    function resetPoints(r){
+        r.players.forEach((p)=>{
+            p.points=0;
+        })
     }
 
 
