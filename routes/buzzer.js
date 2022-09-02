@@ -170,8 +170,9 @@ export default function (io) {
             }
         });
 
-        socket.on("buzz", () => {
-            console.log(`[Buzz ${r.id}] ${p.username}`);
+        socket.on("buzz", (start) => {
+            var time = new Date().getTime()-start;
+            console.log(`[Buzz ${r.id}] ${p.username} in ${time}`);
             if (r.options.mode === "default-mode" && p.free && !p.host) {
                 console.log(`[Buzz ${r.id}] ${p.username} confirmed default`);
                 socket.to(r.id).emit("block");

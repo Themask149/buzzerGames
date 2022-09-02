@@ -130,7 +130,8 @@ function block(){
 }
 
 function buzzed(){
-    socket.emit("buzz");
+    var start = new Date().getTime();
+    socket.emit("buzz",start);
     $("#buzzer-state").text("Buzzed");
     $("#buzzer-circle").attr('fill',"red");
     $(document).off('keydown');
