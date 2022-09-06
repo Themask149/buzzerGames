@@ -113,20 +113,25 @@ socket.on("buzzed",()=>{
     buzzed();
 })
 
-socket.on("player buzz",(p,bool)=>{
-    var htmlcode = `<li class="list-group-item"  >${p.username}  `
-    if (bool){
-        htmlcode += `<i class="fa-solid fa-circle-check check-buzz" style="color:green" data-username="${p.username}" id="${p.username}-check" data-bs-toggle="modal" data-bs-target="#modalGivePoints"></i>`
-    }
-    htmlcode += '</li>';
-    $('#buzzing-list').append(htmlcode);
-    $(`#${p.username}-check`).on('click',(e)=>{
-        $('#pseudo-modal').text(`${p.username}`);
-        $('#btn-validate').attr("data-username", `${p.username}`)
-        $('#btn-validate').on('click',(e)=>{
-            validerPoints(e.target)
+socket.on("player buzz",(buzzes,bool)=>{
+    $('.check-buzz').off('click');
+    $('#buzzing-list').empty();
+    buzzes.forEach((buzz)=>{
+        var htmlcode = `<li class="list-group-item"  >${buzz.player}  `
+        if (bool){
+            htmlcode += `<i class="fa-solid fa-circle-check check-buzz" style="color:green" data-username="${p.username}" id="${p.username}-check" data-bs-toggle="modal" data-bs-target="#modalGivePoints"></i>`
+        }
+        htmlcode += '</li>';
+        $('#buzzing-list').append(htmlcode);
+        $(`#${buzz.player}-check`).on('click',(e)=>{
+            $('#pseudo-modal').text(`${buzz.player}`);
+            $('#btn-validate').attr("data-username", `${buzz.player}`)
+            $('#btn-validate').on('click',(e)=>{
+                validerPoints(e.target)
+            })
         })
     })
+    
 });
 
 socket.on("show scores",(r)=>{

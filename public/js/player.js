@@ -7,7 +7,8 @@ var player = {
     buzzed:false,
     locked:true,
     free:false,
-    points:0
+    points:0,
+    ping:0
 };
 
 const socket = io();
@@ -67,8 +68,11 @@ socket.on("block",()=>{
     block();
 });
 
-socket.on("player buzz",(p,bool)=>{
-    $('#buzzing-list').append(`<li class="list-group-item">${p.username} </li> `);
+socket.on("player buzz",(buzzes,bool)=>{
+    $('#buzzing-list').empty();
+    buzzes.forEach((buzz)=>{
+        $('#buzzing-list').append(`<li class="list-group-item">${buzz.player} </li> `);
+    })
 });
 
 socket.on("clear buzz",()=>{
@@ -102,6 +106,9 @@ socket.on("unshow scores",(r)=>{
     })
 });
 
+socket.on("latencyOut",(start)=>{
+    socket.emit("latencyIn",start);
+})
 
 
 function liberer(){
@@ -130,8 +137,7 @@ function block(){
 }
 
 function buzzed(){
-    var start = new Date().getTime();
-    socket.emit("buzz",start);
+    socket.emit("buzz");
     $("#buzzer-state").text("Buzzed");
     $("#buzzer-circle").attr('fill',"red");
     $(document).off('keydown');

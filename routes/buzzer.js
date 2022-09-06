@@ -64,7 +64,7 @@ export default function (io) {
                 player.locked = true;
                 player.free = false;
                 p = player;
-                r = { players: [p], id: player.roomId, options: { mode: "default-mode", point: false } };
+                r = { players: [p], id: player.roomId,buzzes:[], options: { mode: "default-mode", point: false } };
                 rooms.push(r);
                 socket.join(p.roomId);
 
@@ -124,6 +124,7 @@ export default function (io) {
                     socket.to(r.id).emit("libere");
                     console.log("clearing buzz");
                     io.to(r.id).emit("clear buzz");
+                    r.buzzes=[];
                 }
             }
             else if (p.free  && !p.locked&&!p.buzzed){
@@ -170,9 +171,8 @@ export default function (io) {
             }
         });
 
-        socket.on("buzz", (start) => {
-            var time = new Date().getTime()-start;
-            console.log(`[Buzz ${r.id}] ${p.username} in ${time}`);
+        socket.on("buzz", () => {
+            console.log(`[Buzz ${r.id}] ${p.username}`);
             if (r.options.mode === "default-mode" && p.free && !p.host) {
                 console.log(`[Buzz ${r.id}] ${p.username} confirmed default`);
                 socket.to(r.id).emit("block");
@@ -180,7 +180,11 @@ export default function (io) {
                 p.buzzed = true;
                 p.locked = false;
                 p.free = false;
-                io.to(r.id).emit("player buzz", p, r.options.point);
+                r.buzzes.push({player:p.username,time:Date.now()-p.ping});
+                r.buzzes.sort((a,b)=>{
+                    return a.time-b.time;
+                })
+                io.to(r.id).emit("player buzz", r.buzzes, r.options.point);
             }
             else if (r.options.mode === "multi-mode" && p.free && !p.host){
                 console.log(`[Buzz ${r.id}] ${p.username} confirmed multi`);
@@ -188,7 +192,11 @@ export default function (io) {
                 p.buzzed = true;
                 p.locked = false;
                 p.free = false;
-                io.to(r.id).emit("player buzz", p, r.options.point);
+                r.buzzes.push({player:p.username,time:Date.now()-p.ping});
+                r.buzzes.sort((a,b)=>{
+                    return a.time-b.time;
+                })
+                io.to(r.id).emit("player buzz", r.buzzes, r.options.point);
             }
             else if (p.host){
                 p.buzzed = true;
@@ -242,6 +250,18 @@ export default function (io) {
             }
         });
 
+        socket.on("latencyIn",(start)=>{
+            p.ping=(Date.now()-start)/2;
+        })
+
+        setInterval(() => {
+            const start = Date.now();
+            if (p){
+                io.in(p.roomId).emit("latencyOut", start);
+            }
+            
+          }, 10000);
+        
         
 
 
