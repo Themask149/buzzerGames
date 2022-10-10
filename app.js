@@ -34,3 +34,7 @@ app.use(express.json());
 app.get('/', (req, res) => {
     res.render('home',{titre:"Welcome !",root:"",title:"Accueil"});
 });
+
+app.get('/',(req,res)=>{
+    res.set("Connection", "close");
+})
