@@ -4,7 +4,7 @@ import express from "express";
 import {createServer} from "http";
 const app = express();
 const http = createServer(app);
-const port = 8080;
+const port = process.env.PORT || 8080;
 const io = new Server(http);
 import routeBuzzerFunction from './routes/buzzer.js';
 import ejs from "ejs";
@@ -37,4 +37,6 @@ app.get('/', (req, res) => {
 
 app.get('/close',(req,res)=>{
     res.set("Connection", "close");
-})
+});
+//this is just testing
+

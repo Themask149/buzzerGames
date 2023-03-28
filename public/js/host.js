@@ -27,9 +27,9 @@ $("#bloquer").on('click',(e)=>{
     block("all");
 });
 $('#reset').on('click',(e)=>{
-    console.log("reset")
+    console.log("reset");
     socket.emit("resetPoints");
-})
+});
 
 $('#btn-points').on('change',(e)=>{
     socket.emit("changePointsMode",$('#btn-points').is(':checked'));
@@ -43,8 +43,8 @@ $(function(){
         if (e.key ==="l"){
             liberer("all");
         }
-    })
-})
+    });
+});
 
 $("#form-pseudo").on('submit', function (e){
     e.preventDefault();
@@ -74,7 +74,7 @@ socket.on('host launch',(player)=>{
 
 socket.on("new player",(player,bool)=>{
     $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${player.socketId}" class="btn btn-secondary kick">kick</button> </div> <span class="mx-2 score"  style="display: none;"> </span></li>`);
-    afficheScore(bool,player)
+    afficheScore(bool,player);
     $('.kick').on('click',(e)=>{
         e.preventDefault();
         console.log('kick');
@@ -111,26 +111,26 @@ socket.on("block",()=>{
 socket.on("buzzed",()=>{
     soundPlay();
     buzzed();
-})
+});
 
 socket.on("player buzz",(buzzes,bool)=>{
     $('.check-buzz').off('click');
     $('#buzzing-list').empty();
     buzzes.forEach((buzz)=>{
-        var htmlcode = `<li class="list-group-item"  >${buzz.player}  `
+        var htmlcode = `<li class="list-group-item"  >${buzz.player}  `;
         if (bool){
-            htmlcode += `<i class="fa-solid fa-circle-check check-buzz" style="color:green" data-username="${p.username}" id="${p.username}-check" data-bs-toggle="modal" data-bs-target="#modalGivePoints"></i>`
+            htmlcode += `<i class="fa-solid fa-circle-check check-buzz" style="color:green" data-username="${p.username}" id="${p.username}-check" data-bs-toggle="modal" data-bs-target="#modalGivePoints"></i>`;
         }
         htmlcode += '</li>';
         $('#buzzing-list').append(htmlcode);
         $(`#${buzz.player}-check`).on('click',(e)=>{
             $('#pseudo-modal').text(`${buzz.player}`);
-            $('#btn-validate').attr("data-username", `${buzz.player}`)
+            $('#btn-validate').attr("data-username", `${buzz.player}`);
             $('#btn-validate').on('click',(e)=>{
-                validerPoints(e.target)
-            })
-        })
-    })
+                validerPoints(e.target);
+            });
+        });
+    });
     
 });
 
@@ -138,7 +138,7 @@ socket.on("show scores",(r)=>{
     $('#reset').show("slow");
     r.players.forEach((p)=>{
         afficheScore(true,p);
-    })
+    });
     $("#success-alert").html("<strong>Points remis à 0 </strong>");
     $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
         $("#success-alert").slideUp(500);
@@ -160,7 +160,7 @@ socket.on("unshow scores",(r)=>{
 socket.on("update score",(p)=>{
     var score = $(`#${p.username}`).children('.score');
     score.text(p.points);
-})
+});
 
 socket.on("clear buzz",()=>{
     console.log("clear");
@@ -170,7 +170,7 @@ socket.on("clear buzz",()=>{
 socket.on("disconnect",()=>{
     alert("L'hôte s'est déconnecté");
     document.location.href="/";
-})
+});
 
 socket.on("error",(err)=>{
     alert(err);
@@ -201,13 +201,14 @@ function soundPlay(){
 }
 
 function afficheScore(bool,p){
+    var score;
     if (bool){
-        var score = $(`#${p.username}`).children('.score');
+        score = $(`#${p.username}`).children('.score');
         score.show();
         score.text(p.points);
     }
     else{
-        var score = $(`#${p.username}`).children('.score');
+        score = $(`#${p.username}`).children('.score');
         score.hide();
     }
     
@@ -216,6 +217,6 @@ function afficheScore(bool,p){
 function validerPoints(target){
     $('#btn-validate').off('click');
     liberer("all");
-    socket.emit("change points",target.dataset.username,$("#score-input").val())
+    socket.emit("change points",target.dataset.username,$("#score-input").val());
 }
 
