@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import User from '../model/user.js';
 
 function adminAuth(req, res, next) {
     const token = req.cookies.token;
@@ -61,6 +62,36 @@ function isConnected(req, res, next) {
     else {
         next(false);
     }
+};
+
+function getUser (req, res, next) {
+    const token = req.cookies.token;
+    if (token) {
+        jwt.verify(token, process.env.JWT_SECRET, async (err, decodedToken) => {
+            if (err) {
+                console.log("Issue while verifying token: "+err.message);
+                next(null);
+            } else {
+            // find user in db thanks to username in decodedToken
+            const user = await User.findOne({
+                username: decodedToken.username
+            }).lean();
+            if (!user) {
+                console.log('User'+ decodedToken.username +'not found');
+                next(null);
+            }
+            else {
+                next(user);
+            }
+    }});
+
+    }
+    else {
+        next(null);
+    }
 }
 
-export { adminAuth, isAdmin,isConnected };
+
+
+
+export { adminAuth, isAdmin,isConnected,getUser };

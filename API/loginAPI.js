@@ -4,12 +4,14 @@ import bcrypt from 'bcrypt';
 import User from '../model/user.js';
 import emailValidator from 'deep-email-validator';
 import { adminAuth, isConnected } from './connectivity.js';
+import cookieParser from 'cookie-parser';
 const saltRounds = 10;
 const maxAge = 60 * 60 * 24 * 7;
 
 
 export default function (io) {
 	const router = express.Router();
+	router.use(cookieParser());
 
 	router.post('/register', async (req, res) => {
 		console.log(
@@ -150,8 +152,80 @@ export default function (io) {
 		}
 	});
 
-	router.post('/change-password', async (req, res) => {
+	router.post('/changePassword', async (req, res) => {
+		//change password
+		console.log('New change password request');
+		if (!req.body.oldPassword|| !req.body.newPassword) {
+			console.log('One of the fields is empty');
+			res.json({
+				status: 'error',
+				error: 'Veuillez remplir tous les champs !'
+			});
+			return;
+		}
+		if (req.body.oldPassword === req.body.newPassword) {
+			console.log('Old password and new password are the same');
+			res.json({
+				status: 'error',
+				error: 'Le nouveau mot de passe doit être différent de l\'ancien !'
+			});
+			return;
+		}
 		
+		const token = req.cookies.token;
+		if (!token) {
+			console.log('No token');
+			res.json({
+				status: 'error',
+				error: 'Veuillez vous connecter !'
+			});
+			return;
+		}
+		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		console.log('New change password request from ' + decoded.username);
+		const user = await User.findOne({
+			username: decoded.username
+		}).lean();
+		if (!user) {
+			console.log('User not found');
+			res.json({
+				status: 'error',
+				error: 'Utilisateur introuvable !'
+			});
+			return;
+		}
+		let bool = await bcrypt.compare(req.body.oldPassword, user.password);
+		if (!bool) {
+			console.log('Password is incorrect');
+			res.json({
+				status: 'error',
+				error: 'Mot de passe incorrect !'
+			});
+			return;
+		}
+		const hashedPassword = await bcrypt.hash(
+			req.body.newPassword,
+			saltRounds
+		);
+		try{
+		User.updateOne(	{ username: decoded.username }, { password: hashedPassword }).then(() => {
+			console.log('Password changed');
+			res.json({
+				status: 'success',
+				message: 'Mot de passe modifié !'
+			});
+			return;
+		}
+		);
+		}
+		catch (error) {
+			console.log(error)
+			console.log('Password change error');
+			return res.json({
+				status: 'error',
+				error: "Erreur lors de la modification du mot de passe !"
+			});
+		}
 	});
 
 	// Create CRUD API for users

@@ -1,15 +1,15 @@
 import express from 'express';
 import xss from 'xss';
 import cookieParser from 'cookie-parser';
-import { adminAuth, isConnected } from '../API/connectivity.js';
+import { adminAuth, isConnected, getUser } from '../API/connectivity.js';
 
 export default function (io) {
     const router = express.Router();
     router.use(cookieParser());
 
-    router.all('*', (req, res, next) => {
-        res.send('Désolé, je code encore cette partie...');
-    });
+    // router.all('*', (req, res, next) => {
+    //     res.send('Désolé, je code encore cette partie...');
+    // });
     router.get('/', (req, res) => {
         res.redirect('centurie/home');
     });
@@ -49,8 +49,16 @@ export default function (io) {
         });
     });
 
-    router.get('/profile', isConnected, (req, res) => {
-        res.render('centurie/profile');
+    router.get('/profil', (req, res) => {
+        getUser(req, res, (user) => {
+            if (user) {
+                console.log(user);
+                res.render('centurie/profil', { user: user, connected: true });
+            }
+            else {
+                res.redirect('logout');
+            }
+        });
     });
 
 
