@@ -11,7 +11,7 @@ const player = {
 
 const socket = io();
 
-
+let start = false;
 
 $(".modes").on('click',(e)=>{
     e.preventDefault();
@@ -37,12 +37,14 @@ $('#btn-points').on('change',(e)=>{
 
 $(function(){
     $(document).keydown(function(e){
+        if (start){
         if (e.key ==="b"){
             block("all");
         }
         if (e.key ==="l"){
             liberer("all");
         }
+    }
     });
 });
 
@@ -70,6 +72,7 @@ $("#form-pseudo").on('submit', function (e){
 
 socket.on('host launch',(player)=>{
     $('#player-list').append(`<li class="list-group-item">${player.username} (Host) </li>`);
+    start=true;
 });
 
 socket.on("new player",(player,bool)=>{

@@ -1,0 +1,29 @@
+<%- include('../partials/header',{root:"../"}); %>
+    <title>Login</title>
+</head>
+
+<body>
+    <%- include('../partials/centurieNavbar'); %>
+    <div class="card text-center w-50 mx-auto">
+    <div class="card-header">
+        Pour sauvegarder vos résultats, connectez-vous
+    </div>
+    <div class="card-body">
+    <form id="loginForm">
+        <div class="mb-3">
+          <label for="PseudoInput" class="form-label">Pseudo</label>
+          <input type="text" class="form-control" id="PseudoInput" >
+        </div>
+        <div class="mb-3">
+          <label for="PasswordInput" class="form-label">Password</label>
+          <input type="password" class="form-control" id="PasswordInput">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+      <a href="/centurie/register">Pas encore de compte ?</a>
+    </div>
+    </div>
+
+  <%- include('../partials/script'); %>
+  <script src="/js/login.js"></script>
+</body>
