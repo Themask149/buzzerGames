@@ -3,12 +3,22 @@
 </head>
 
 <body>
-    <div class="card" style="width: 18rem;">
+  <%- include('../partials/centurieNavbar',{connected:connected,admin:admin}); %>
+  <div class="row">
+    <div class="card col-4">
         <div class="card-body">
           <h5 class="card-title">nouveau post</h5>
           <p class="card-text">Faire la pub d'un nouveau défi</p>
           <a href="#" class="btn btn-primary">Go somewhere</a>
         </div>
       </div>
+      <div class="card col-4">
+        <div class="card-body">
+          <h5 class="card-title">nouveau questionnaire</h5>
+          <p class="card-text">Créer un nouveau questionnaire</p>
+          <a href="/centurie/redaction" class="btn btn-primary">Go</a>
+        </div>
+      </div>
+    </div>
       <%- include('../partials/script'); %>
 </body>

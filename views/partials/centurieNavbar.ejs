@@ -11,6 +11,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/centurie">Home</a>
                 </li>
+                <% if (admin) { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/centurie/dashboard">Dashboard</a>
+                </li>
+                <% } %>
             </ul>
             <ul class="navbar-nav" style="margin-left: auto;">
                 <% if (!connected) { %>

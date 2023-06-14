@@ -22,10 +22,12 @@ const io = new Server(server);
 import routeBuzzerFunction from './routes/buzzer.js';
 import routeCenturieFunction from './routes/centurie.js';
 import routeLoginAPIFunction from './API/loginAPI.js';
+import routeQuizzAPIFunction from './API/quizzAPI.js';
 
 const routeBuzzer=routeBuzzerFunction(io);
 const routeCenturie=routeCenturieFunction(io);
 const routeLoginAPI=routeLoginAPIFunction(io);
+const routeQuizzAPI=routeQuizzAPIFunction(io);
 
 /**
  * @type {Socket}
@@ -43,6 +45,7 @@ app.use(express.static('public'));
 app.use('/apps/buzzer',routeBuzzer);
 app.use('/centurie',routeCenturie);
 app.use('/api',routeLoginAPI);
+app.use('/api',routeQuizzAPI);
 app.use(cookieParser());
 
  

@@ -51,16 +51,16 @@ function isConnected(req, res, next) {
         jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
             if (err) {
                 console.log(err.message);
-                next(false)
+                next(false,null)
             } else {
                 if (decodedToken.role) {
-                    next(true)
+                    next(true, decodedToken.role);
                 }
             }
         });
     }
     else {
-        next(false);
+        next(false,null);
     }
 };
 
