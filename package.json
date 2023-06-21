@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/Themask149/buzzerGames#readme",
   "dependencies": {
-    "bootstrap": "^5.2.0",
+    "bootstrap": "^5.3.0",
     "cors": "^2.8.5",
     "ejs": "^3.1.8",
     "esm": "^3.2.25",
