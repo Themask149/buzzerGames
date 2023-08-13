@@ -34,7 +34,7 @@ socket.on("player init",(room,p)=>{
             $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} (Host) </li>`);
         }
         else{
-            $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} <span class="mx-2 score"  style="display: none;"> </span></li>`);
+            $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} <div class="score" style="display: none;"><button type="button" id="${player.username}-score" class="btn btn-success score-point edit">${p.points}</button></div></li>`);
         }
     });
     if (p.free&&!p.locked&&!p.buzzed){
@@ -57,7 +57,7 @@ socket.on("remove player",(player)=>{
     $(`#${player.username}`).remove();
 });
 socket.on("new player",(player,bool)=>{
-    $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} <span class="mx-2 score"  style="display: none;"> </span></li>`);
+    $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} <div class="score" style="display: none;"><button type="button" id="${player.username}-score" class="btn btn-success score-point edit">${player.points}</button></div></li>`);
     afficheScore(bool,player);
 });
 
@@ -72,7 +72,7 @@ socket.on("player buzz",(buzzes,bool)=>{
     $('#buzzing-list').empty();
     buzzes.forEach((buzz)=>{
         $('#buzzing-list').append(`<li class="list-group-item">${buzz.player} </li> `);
-    })
+    });
 });
 
 socket.on("clear buzz",()=>{
@@ -80,9 +80,9 @@ socket.on("clear buzz",()=>{
 });
 
 socket.on("update score",(p)=>{
-    var score = $(`#${p.username}`).children('.score');
+    var score = $(`#${p.username}-score`);
     score.text(p.points);
-})
+});
 
 socket.on("disconnect",()=>{
     alert("L'hôte s'est déconnecté");
@@ -96,20 +96,19 @@ socket.on("error",(err)=>{
 
 socket.on("show scores",(r)=>{
     r.players.forEach((p)=>{
-        afficheScore(true,p)
-    })
+        afficheScore(true,p);
+    });
 });
 
 socket.on("unshow scores",(r)=>{
     r.players.forEach((p)=>{
-        afficheScore(false,p)
-    })
+        afficheScore(false,p);
+    });
 });
 
 socket.on("latencyOut",(start)=>{
     socket.emit("latencyIn",start);
-})
-
+});
 
 function liberer(){
     console.log("libere");
@@ -122,7 +121,7 @@ function liberer(){
                 buzzerAction();
             }
         });
-    socket.emit("libere")  
+    socket.emit("libere");
 
 }
 
@@ -132,7 +131,7 @@ function block(){
     $("#buzzer-circle").attr('fill',"yellow");
     $("#buzzer").off('click');
     $(document).off('keydown');
-    socket.emit("block")
+    socket.emit("block");
 
 }
 
@@ -150,13 +149,15 @@ function buzzerAction(){
 }
 
 function afficheScore(bool,p){
+    var score;
     if (bool){
-        var score = $(`#${p.username}`).children('.score');
+        score = $(`#${p.username}`).children('.score');
         score.show();
+        score=score.children('.score-point');
         score.text(p.points);
     }
     else{
-        var score = $(`#${p.username}`).children('.score');
+        score = $(`#${p.username}`).children('.score');
         score.hide();
     }
     

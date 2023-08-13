@@ -1,10 +1,15 @@
 // jshint esversion:6
 import express from 'express';
 import xss from 'xss';
+import { adminAuth, isConnected, getUser } from '../API/connectivity.js';
+import cookieParser from 'cookie-parser';
+
 
 export default function (io) {
+
     const test = " test";
     const router = express.Router();
+    router.use(cookieParser());
 
     router.get('/', (req, res) => {
         res.render('buzzer/buzzerHome');
@@ -34,6 +39,13 @@ export default function (io) {
     router.get('/:code', (req, res) => {
         const code = parseInt(req.params.code);
         const room = rooms.find((room) => { return code === room.id; });
+        console.log("[JOIN] " + code + " " + room + "");
+        //log each room of rooms
+        console.log("Rooms :");
+        rooms.forEach((room) => {
+            console.log(room.id);
+        });
+        console.log(listeCodes);
         if (listeCodes.includes(code) && !room) {
             res.status(200).render('buzzer/host', { code: code, players: [] });
         }
@@ -41,7 +53,9 @@ export default function (io) {
             res.status(200).render('buzzer/player', { code: code, players: [] });
         }
         else {
-            res.status(404).render('home', { titre: "Pas de salles associées", root: "../../", title: "Erreur" });
+            isConnected(req, res, (connected,role) => {
+                res.status(404).render('home', { titre: "Pas de salles associées", root: "../../", title: "Erreur",connected:connected });
+            });
         }
 
     });
@@ -69,15 +83,15 @@ export default function (io) {
                 socket.join(p.roomId);
 
                 console.log(`[Hosting] ${p.username} host la room ` + p.roomId);
-                io.to(socket.id).emit('host launch', p);
+                io.to(socket.id).emit('host launch', p,r);
             }
 
         });
 
         socket.on('playerData', (player) => {
             if (!/^[A-Za-z0-9]*$/.test(player.username)) {
-                io.in(p.roomId).emit("error", "Choississez un pseudo qu'avec des caractères alphanumériques");
-                socket.disconnect();
+                io.in(player.socketId).emit("error", "Choississez un pseudo qu'avec des caractères alphanumériques");
+                
             }
             else {
                 console.log(`[Joining] ${player.username} join la room ` + player.roomId);
@@ -106,7 +120,7 @@ export default function (io) {
             console.log("Receiving changeMode");
 
             if (p.host) {
-                console.log(`[Changing mode ${r.id}] from ${r.options.mode} to ${mode}`)
+                console.log(`[Changing mode ${r.id}] from ${r.options.mode} to ${mode}`);
                 r.options.mode = mode;
                 socket.emit("modeChanged");
                 console.log(rooms);
@@ -116,7 +130,7 @@ export default function (io) {
         socket.on("libere", (str) => {
             console.log(`[Free ${r.id}] ${p.username}`);
             if ((p.buzzed || p.locked) && !p.free) {
-                console.log(`[Freeing ${r.id}] ${p.username}`)
+                console.log(`[Freeing ${r.id}] ${p.username}`);
                 p.buzzed = false;
                 p.locked = false;
                 p.free = true;
@@ -141,7 +155,7 @@ export default function (io) {
         socket.on("block", (str="only") => {
             console.log(`[Block ${r.id}] ${p.username}`);
             if ((p.buzzed || p.free) && !p.locked) {
-                console.log(`[Blocking ${r.id}] ${p.username}`)
+                console.log(`[Blocking ${r.id}] ${p.username}`);
                 p.buzzed = false;
                 p.locked = true;
                 p.free = false;
@@ -158,6 +172,20 @@ export default function (io) {
                 io.in(p.roomId).disconnectSockets();
             }
 
+        });
+
+        socket.on("soloblock", (socketId) => {
+            var player = r.players.find((player) => { return player.socketId === socketId; });
+            if (player) {
+                if (player.buzzed || player.free) {
+                    console.log(`[Block ${r.id}] ${player.username}`);
+                    io.to(socketId).emit("block");
+                }
+                if (player.locked) {
+                    console.log(`[Free ${r.id}] ${player.username}`);
+                    io.to(socketId).emit("libere");
+                }
+            }
         });
 
         socket.on("kick", (socketId) => {
@@ -183,7 +211,7 @@ export default function (io) {
                 r.buzzes.push({player:p.username,time:Date.now()-p.ping});
                 r.buzzes.sort((a,b)=>{
                     return a.time-b.time;
-                })
+                });
                 io.to(r.id).emit("player buzz", r.buzzes, r.options.point);
             }
             else if (r.options.mode === "multi-mode" && p.free && !p.host){
@@ -195,7 +223,7 @@ export default function (io) {
                 r.buzzes.push({player:p.username,time:Date.now()-p.ping});
                 r.buzzes.sort((a,b)=>{
                     return a.time-b.time;
-                })
+                });
                 io.to(r.id).emit("player buzz", r.buzzes, r.options.point);
             }
             else if (p.host){
@@ -207,20 +235,20 @@ export default function (io) {
 
         socket.on("changePointsMode",(bool)=>{
             if (bool != r.options.point){
-                r.options.point=bool
+                r.options.point=bool;
                 if (bool){
                     resetPoints(r);
-                    io.to(p.roomId).emit("show scores", r)
+                    io.to(p.roomId).emit("show scores", r);
                 }
                 else{
-                    io.to(p.roomId).emit("unshow scores", r)
+                    io.to(p.roomId).emit("unshow scores", r);
                 }
             }
-        })
+        });
 
         socket.on('resetPoints',()=>{
             resetPoints(r);
-            io.to(p.roomId).emit("show scores",r)
+            io.to(p.roomId).emit("show scores",r);
         });
 
         socket.on('change points', (username,points)=>{
@@ -229,7 +257,7 @@ export default function (io) {
             var player = r.players.find((player) => { return player.username === username; });
             player.points += parseInt(points);
             io.to(p.roomId).emit("update score",player);
-        })
+        });
 
         socket.on("disconnect", () => {
             console.log(`[Disconnection] ${socket.id}`);
@@ -245,14 +273,15 @@ export default function (io) {
             else if (p && p.host) {
                 console.log(`Bye bye host ${p.username}`);
                 io.in(p.roomId).disconnectSockets();
-                rooms = rooms.filter((room) => room.id = !p.roomId);
+                rooms = rooms.filter((room) => room.id !== p.roomId);
                 listeCodes = listeCodes.filter((code) => code !== p.roomId);
             }
         });
 
         socket.on("latencyIn",(start)=>{
             p.ping=(Date.now()-start)/2;
-        })
+        });
+
 
         setInterval(() => {
             const start = Date.now();
@@ -271,7 +300,7 @@ export default function (io) {
     function resetPoints(r){
         r.players.forEach((p)=>{
             p.points=0;
-        })
+        });
     }
 
 
@@ -282,4 +311,3 @@ export default function (io) {
 
 
 }
-//test

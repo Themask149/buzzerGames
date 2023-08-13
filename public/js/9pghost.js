@@ -11,7 +11,7 @@ const player = {
 
 const socket = io();
 
-
+let start = false;
 
 $(".modes").on('click',(e)=>{
     e.preventDefault();
@@ -37,12 +37,14 @@ $('#btn-points').on('change',(e)=>{
 
 $(function(){
     $(document).keydown(function(e){
+        if (start){
         if (e.key ==="b"){
             block("all");
         }
         if (e.key ==="l"){
             liberer("all");
         }
+    }
     });
 });
 
@@ -70,18 +72,44 @@ $("#form-pseudo").on('submit', function (e){
 
 socket.on('host launch',(player)=>{
     $('#player-list').append(`<li class="list-group-item">${player.username} (Host) </li>`);
+    start=true;
 });
 
 socket.on("new player",(player,bool)=>{
-    $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${player.socketId}" class="btn btn-secondary kick">kick</button> </div> <span class="mx-2 score"  style="display: none;"> </span></li>`);
+    $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${player.socketId}-kick" class="btn btn-secondary kick">kick</button> <button type="button" id="${player.socketId}-block" class="btn btn-warning block">block</button></div><div class="score" style="display: none;"> <button type="button" id="${player.socketId}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">Edit</button> </div> </span></li>`);
     afficheScore(bool,player);
-    $('.kick').on('click',(e)=>{
+    $(document).on('click',`#${player.socketId}-kick`,(e)=>{
         e.preventDefault();
         console.log('kick');
-        console.log(e.target.id);
-        socket.emit("kick",e.target.id);
+        socket.emit("kick",player.socketId);
     });
+    $(document).on('click',`#${player.socketId}-block`,(e)=>{
+        e.preventDefault();
+        console.log('block '+player.username);
+        const blockButton = $(`#${player.socketId}-block`);
+        const buttonText = blockButton.text();
+        if (buttonText === "block"){
+            blockButton.text("unblock");
+        }
+        else{
+            blockButton.text("block");
+        }
+        socket.emit("soloblock",player.socketId);
+    });
+    $(document).on('click',`#${player.socketId}-score`,(e)=>{
+        e.preventDefault();
+        console.log('score '+player.username);
+        $('#pseudo-modal').text(`${player.username}`);
+        $('#modal-score-label').text("Donnez le nombre de points à ajouter ou à enlever (mettre un - ) :");
+        $('#btn-validate').attr("data-username", `${player.username}`);
+        $('#btn-validate').on('click',(e)=>{
+            validerPoints(e.target);
+        });
+    });
+
+        
 });
+
 
 socket.on("remove player",(player)=>{
     console.log(`Bye bye ${player.username}`);
@@ -114,12 +142,13 @@ socket.on("buzzed",()=>{
 });
 
 socket.on("player buzz",(buzzes,bool)=>{
+    console.log(JSON.stringify(buzzes));
     $('.check-buzz').off('click');
     $('#buzzing-list').empty();
     buzzes.forEach((buzz)=>{
         var htmlcode = `<li class="list-group-item"  >${buzz.player}  `;
         if (bool){
-            htmlcode += `<i class="fa-solid fa-circle-check check-buzz" style="color:green" data-username="${p.username}" id="${p.username}-check" data-bs-toggle="modal" data-bs-target="#modalGivePoints"></i>`;
+            htmlcode += `<i class="fa-solid fa-circle-check check-buzz" style="color:green" data-username="${buzz.player}" id="${buzz.player}-check" data-bs-toggle="modal" data-bs-target="#modalGivePoints"></i>`;
         }
         htmlcode += '</li>';
         $('#buzzing-list').append(htmlcode);
@@ -158,7 +187,8 @@ socket.on("unshow scores",(r)=>{
 });
 
 socket.on("update score",(p)=>{
-    var score = $(`#${p.username}`).children('.score');
+    var score = $(`#${p.socketId}-score`);
+
     score.text(p.points);
 });
 
@@ -205,6 +235,7 @@ function afficheScore(bool,p){
     if (bool){
         score = $(`#${p.username}`).children('.score');
         score.show();
+        score=score.children('.score-point');
         score.text(p.points);
     }
     else{
