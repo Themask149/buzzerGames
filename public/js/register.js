@@ -1,3 +1,4 @@
+// jshint esversion:8
 $("#registerForm").on("submit", async function(e) {
     e.preventDefault();
     const email= $("#EmailInput").val();
@@ -16,13 +17,13 @@ $("#registerForm").on("submit", async function(e) {
             username,
             password
         })
-    }).then(res => res.json())
+    }).then(res => res.json());
     if (result.status === "success") {
-        window.location.href = "/centurie/home"
+        window.location.href = "/home";
     } else {
-        alert("ERROR ! "+ result.error)
+        alert("ERROR ! "+ result.error);
         $("#submit-text").show();
         $("#submit-spinner").hide();
         $(".btn").prop("disabled", false);
     }
-})
+});

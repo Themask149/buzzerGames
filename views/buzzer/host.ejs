@@ -3,7 +3,7 @@
     </head>
 
     <body>
-        <%- include('../partials/navbar'); %>
+        <%- include('../partials/navbarlow'); %>
 
             <h1 class="text-center display-4">Game Code: <%= code %>
             </h1>
@@ -72,6 +72,17 @@
                     </div>
                     <div class="col-4"></div>
                 </div>
+                <!-- <div class="row mx-auto my-2">
+                    <div class="col-4"></div>
+                    <div class="col-2">
+                    <input type="number" name="" id="9pg-time" class="form-control" minlength="1"
+                                    maxlength="20" placeholder="Temps par question 9pg" value="10" pattern="[0-9\s]+">
+                    </div>
+                    <div class="col-2">
+                    <button type="button" class="btn btn-primary" id="9pg-time-button">Valider</button>
+                    </div>
+                    <div class="col-4"></div>
+                </div> -->
             </div>
 
             <!-- App -->
@@ -137,7 +148,7 @@
                                     <h5 class="modal-title " id="pseudo-modal">Valider la réponse</h5>
                                 </div>
                                 <div class="modal-body">
-                                    <label for="score" class="form-label">Donnez des points pour la réponse :</label>
+                                    <label for="score" class="form-label" id="modal-score-label">Donnez des points pour la réponse :</label>
                                 <input type="number" name="score" id="score-input" class="form-control" placeholder="Nombre de points" pattern="[0-9\s]+" required>
                                 </div>
                                 <div class="modal-footer">
@@ -150,5 +161,5 @@
 
 
             <%- include('../partials/script'); %>
-                <script src="/js/host.js"></script>
+                <script src="/js/9pghost.js"></script>
     </body>

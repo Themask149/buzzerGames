@@ -1,9 +1,9 @@
-<%- include('../partials/header',{root:"../"}); %>
+<%- include('./partials/header',{root:"./"}); %>
     <title>Login</title>
 </head>
 
 <body>
-    <%- include('../partials/centurieNavbar',{connected:connected,admin:admin}); %>
+    <%- include('./partials/navbar',{connected:connected,admin:admin}); %>
     <div class="card text-center w-50 mx-auto">
     <div class="card-header">
         Pour sauvegarder vos résultats, connectez-vous
@@ -20,10 +20,10 @@
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
-      <a href="/centurie/register">Pas encore de compte ?</a>
+      <a href="/register">Pas encore de compte ?</a>
     </div>
     </div>
 
-  <%- include('../partials/script'); %>
+  <%- include('./partials/script'); %>
   <script src="/js/login.js"></script>
 </body>

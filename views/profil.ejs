@@ -1,9 +1,9 @@
-<%- include('../partials/header',{root:"../"}); %>
+<%- include('./partials/header',{root:"./"}); %>
     <title>Profil</title>
     </head>
 
     <body>
-        <%- include('../partials/centurieNavbar',{connected:connected,admin:admin}); %>
+        <%- include('./partials/navbar',{connected:connected,admin:admin}); %>
             <h1 class="p-2 text-center" >Profil</h1>
             <div class="card ">
                 <h4 class="card-header">Mes infos</h5>
@@ -47,6 +47,6 @@
                 </div>
             </div>
 
-            <%- include('../partials/script'); %>
+            <%- include('./partials/script'); %>
             <script src="/js/profil.js"></script>
     </body>

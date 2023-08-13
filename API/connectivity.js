@@ -1,3 +1,4 @@
+// jshint esversion:8
 import jwt from 'jsonwebtoken';
 import User from '../model/user.js';
 
@@ -46,12 +47,13 @@ function isAdmin(req, res, next) {
 }
 
 function isConnected(req, res, next) {
+    
     if (req.cookies.token) {
         const token = req.cookies.token;
         jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
             if (err) {
                 console.log(err.message);
-                next(false,null)
+                next(false,null);
             } else {
                 if (decodedToken.role) {
                     next(true, decodedToken.role);
@@ -62,7 +64,7 @@ function isConnected(req, res, next) {
     else {
         next(false,null);
     }
-};
+}
 
 function getUser (req, res, next) {
     const token = req.cookies.token;

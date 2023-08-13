@@ -1,3 +1,4 @@
+// jshint esversion:8
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
@@ -78,7 +79,7 @@ export default function (io) {
 				status: 'success'
 			});
 		} catch (error) {
-			console.log(error)
+			console.log(error);
 			console.log('Register duplication error');
 			return res.json({
 				status: 'error',
@@ -219,7 +220,7 @@ export default function (io) {
 		);
 		}
 		catch (error) {
-			console.log(error)
+			console.log(error);
 			console.log('Password change error');
 			return res.json({
 				status: 'error',

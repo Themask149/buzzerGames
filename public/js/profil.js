@@ -1,3 +1,4 @@
+// jshint esversion:8
 $("#changePassword").on("submit", function(e) {
     e.preventDefault();
     const oldPassword = $("#oldPassword").val();
@@ -37,6 +38,6 @@ $("#changePassword").on("submit", function(e) {
             $("#submit-spinner").hide();
             $(".btn").prop("disabled", false);
         }
-    })
+    });
 
 });

@@ -1,3 +1,4 @@
+// jshint esversion:8
 $("#loginForm").on("submit", function(e) {
     e.preventDefault();
     const username = $("#PseudoInput").val();
@@ -17,12 +18,12 @@ $("#loginForm").on("submit", function(e) {
     }).then(res => res.json())
     .then(data => {
         if (data.status === "success") {
-            window.location.href = "/centurie/home"
+            window.location.href = "/home";
         } else {
-            alert("ERROR ! "+ data.error)
+            alert("ERROR ! "+ data.error);
             $("#submit-text").show();
             $("#submit-spinner").hide();
             $(".btn").prop("disabled", false);
         }
-    })
-})
+    });
+});

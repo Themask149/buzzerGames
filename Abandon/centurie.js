@@ -1,3 +1,4 @@
+// jshint esversion:6
 import express from 'express';
 import xss from 'xss';
 import cookieParser from 'cookie-parser';

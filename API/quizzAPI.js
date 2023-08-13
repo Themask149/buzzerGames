@@ -1,3 +1,4 @@
+// jshint esversion:8
 import express from 'express';
 import { Question, Theme, Questionnaire } from '../model/questions.js';
 import { adminAuth } from './connectivity.js';
@@ -93,11 +94,11 @@ export default function (io) {
         } catch (err) {
             res.status(500).json({ message: err });
         }
-    })
+    });
 
     router.get("/themes/:id", adminAuth, async (req,res) => {
         try{
-            const Theme = await Theme.findById(req.params.id).populate('questions');
+            var Theme = await Theme.findById(req.params.id).populate('questions');
             if (!Theme) {
                 return res.status(404).send("Theme not found.");
               }
@@ -106,13 +107,13 @@ export default function (io) {
             console.error(err);
             res.status(500).json({ message: err });
         }
-    })
+    });
 
     router.post("/themes", adminAuth, async (req,res) => {
         // Should create the questions in the database
         
         try{
-            const Theme = new Theme({
+            var Theme = new Theme({
                 theme: req.body.theme,
                 subtitle: req.body.subtitle,
                 questions: req.body.questions
@@ -124,11 +125,11 @@ export default function (io) {
             console.error(err);
             res.status(500).json({ message: err });
         }
-    })
+    });
 
     router.put("/themes/:id", adminAuth, async (req,res) => {
         try {
-            const Theme = await Theme.findByIdAndUpdate(
+            const theme = await Theme.findByIdAndUpdate(
                 req.params.id,
                 {
                     theme: req.body.theme,
@@ -147,22 +148,22 @@ export default function (io) {
             res.status(500).json({ message: err });
         }
 
-    })
+    });
 
     router.delete("/themes/:id", adminAuth, async (req,res) => {
         try{
-            const Theme = await Theme.findById(req.params.id);
-            if (!Theme) {
+            var theme = await Theme.findById(req.params.id);
+            if (!theme) {
                 return res.status(404).json({ message: "Theme not found." });
             }
-            await Theme.remove();
+            await theme.remove();
             res.status(200).json({message: "Theme deleted!"});
         }
         catch (err) {
             console.error(err);
             res.status(500).json({ message: err });
         }
-    })
+    });
 
     // REST API for Questionnaire DB
 
@@ -178,7 +179,7 @@ export default function (io) {
             console.error(err);
             res.status(500).json({ message: err });
         }
-    })
+    });
 
     router.get("/questionnaires/:id", async (req,res) => {
         try{
@@ -188,7 +189,7 @@ export default function (io) {
                     path: 'questions',
                     model: 'Question'
                 }
-            })
+            });
             if (!questionnaire) {
                 return res.status(404).json({ message: "Questionnaire not found." });
               }
@@ -198,7 +199,7 @@ export default function (io) {
             res.status(500).json({ message: err });
         }
     }
-    )
+    );
 
     router.post("/questionnaires", adminAuth, async (req,res) => {
         try{
@@ -214,7 +215,7 @@ export default function (io) {
             console.error(err);
             res.status(500).json({ message: err });
         }
-    })
+    });
 
     router.put("/questionnaires/:title", adminAuth, async (req,res) => {
         try{
@@ -226,7 +227,7 @@ export default function (io) {
                     themes: req.body.themes
                 },
                 { new: true }
-            )
+            );
             if (!questionnaire) {
                 return res.status(404).json({ message: "Questionnaire not found." });
               }
@@ -236,7 +237,7 @@ export default function (io) {
             console.error(err);
             res.status(500).json({ message: err });
         }
-    })
+    });
 
     router.delete("/questionnaires/:title", adminAuth, async (req,res) => {
         try{
@@ -251,7 +252,7 @@ export default function (io) {
             res.status(500).json({ message: err });
         }
     }
-    )
+    );
 
     return router;
 }

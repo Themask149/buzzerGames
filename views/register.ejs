@@ -1,9 +1,9 @@
-<%- include('../partials/header',{root:"../"}); %>
+<%- include('./partials/header',{root:"./"}); %>
     <title>Register</title>
 </head>
 
 <body>
-    <%- include('../partials/centurieNavbar',{connected:connected,admin:admin}); %>
+    <%- include('./partials/navbar',{connected:connected,admin:admin}); %>
     <div class="card text-center w-50 mx-auto">
     <div class="card-header">
         Engeristrez-vous pour pouvoir participer aux centuries !
@@ -27,10 +27,10 @@
           <span id="submit-spinner" style="display: none;" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         </button>
       </form>
-      <a href="/centurie/login">Vous avez un compte?</a>
+      <a href="/login">Vous avez un compte?</a>
     </div>
     </div>
 
-  <%- include('../partials/script'); %>
+  <%- include('./partials/script'); %>
   <script src="/js/register.js"></script>
 </body>
