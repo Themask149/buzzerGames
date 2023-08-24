@@ -47,9 +47,6 @@ $("#form-pseudo").on('submit', function (e){
     socket.emit("4ALSplayerDataHost",player);
 });
 
-$
-
-
 $('#Start').on('click',(e)=>{
     $('#Start').hide("slow");
     $('#settings-button').hide("slow");
