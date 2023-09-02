@@ -14,7 +14,7 @@ export default function (io) {
     router.get('/', (req, res) => {
         res.render('4als/4alsHome');
     });
-    var rooms = [{ players: [], id: 123456789, state: { currentPlayer:null, start: false, maxScore: 0,score:0 }}];
+    var rooms = [{ players: [], id: 123456789, state: { currentPlayer:null, start: false, maxScore: 0,score:0 },options:{roundTime:45}}];
     var listeCodes = [];
 
     router.post('/', (req, res) => {
@@ -70,7 +70,7 @@ export default function (io) {
                 player.host = true;
                 player.roomId = parseInt(player.roomId);
                 p = player;
-                r = { players: [p], id: player.roomId, state: { currentPlayer:null, start: false, maxScore: 0,score:0 } };
+                r = { players: [p], id: player.roomId, state: { currentPlayer:null, start: false, maxScore: 0,score:0 }, options: { roundTime: 45 } };
                 rooms.push(r);
                 socket.join(p.roomId);
                 console.log(`[Hosting 4ALS] ${p.username} host la room ` + p.roomId);
@@ -107,6 +107,7 @@ export default function (io) {
 
         socket.on("4ALS current player", (player) => {
             if (p && p.host) {
+                console.log(`[4ALS ${r.id}]current player : `+player);
                 r.state.currentPlayer=player;
                 r.state.score=0;
                 r.state.maxScore=0;
@@ -164,6 +165,21 @@ export default function (io) {
                 }
                 io.to(p.roomId).emit("4ALS answer", bool,r.state);
             } 
+        });
+
+        socket.on("4ALS time", (time) => {
+            if (p && p.host) {
+                r.options.roundTime=time;
+                io.to(p.roomId).emit("4ALS time", time);
+            }
+        });
+
+        socket.on('4ALS change points', (username,points)=>{
+            console.log(username);
+            console.log(points);
+            var player = r.players.find((player) => { return player.username === username; });
+            player.points += parseInt(points);
+            io.to(p.roomId).emit("4ALS update score",player,r);
         });
 
 

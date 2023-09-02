@@ -11,6 +11,7 @@ const socket = io();
 var currentRoom;
 var roundTime=45;
 var countdownInterval;
+var currentplayer;
 
 $(function(){
     $(document).keydown(function(e){
@@ -66,10 +67,10 @@ $('#Faux').on('click',(e)=>{
 $('#4als-time-button').on('click',(e)=>{
     roundTime=$('#4als-time').val();
     $('#countdown').text(roundTime);
+    socket.emit("4ALS time",roundTime);
 });
 
 socket.on('4ALS host launch',(player,room)=>{
-    console.log(player);
     $('#player-list').append(`<li class="list-group-item">${player.username} (Host) </li>`);
     currentRoom=room;
 });
@@ -77,11 +78,20 @@ socket.on('4ALS host launch',(player,room)=>{
 socket.on("4ALS new player",(player)=>{
     $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${player.socketId}-kick" class="btn btn-secondary kick">kick</button></div><div class="score"> <button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button> </div> </span></li>`);
     $(document).on('click',`#${player.socketId}-kick`,(e)=>{
-        e.preventDefault();
-        console.log('kick');
-        socket.emit("4ALSkick",player.socketId);
+        if (!currentRoom.state.start){
+            e.preventDefault();
+            console.log('kick');
+            if (currentplayer && currentplayer===player.username){
+                socket.emit("4ALS current player",null);
+            }
+            $('#countdown').hide("slow");
+            $('#Start').hide("slow");
+            $('#settings-button').show("slow");
+
+            socket.emit("4ALSkick",player.socketId);
+        }
     });
-    $(document).on('click',`#${player.socketId}-score`,(e)=>{
+    $(document).on('click',`#${player.username}-score`,(e)=>{
         e.preventDefault();
         console.log('score '+player.username);
         $('#pseudo-modal').text(`${player.username}`);
@@ -92,7 +102,9 @@ socket.on("4ALS new player",(player)=>{
         });
     });
     $(document).on('click',`#${player.username}`,(e)=>{
-        socket.emit("4ALS current player",player.username);
+        if (!currentRoom.state.start){
+            socket.emit("4ALS current player",player.username);
+        }
     });
         
 });
@@ -102,10 +114,15 @@ socket.on("4ALS current player",(r)=>{
     if (currentplayer!=null){
         $(`#${currentplayer}`).css('background-color','white');
     }
-    $(`#${r.state.currentPlayer}`).css('background-color','orange');
-    $('#start-timer').show("slow");
-    $('#countdown').text(roundTime);
-    $('#countdown').show("slow");
+    if (r.state.currentPlayer!=null){
+        console.log(r.state.currentPlayer)
+        $(`#${r.state.currentPlayer}`).css('background-color','orange');
+        $('#start-timer').show("slow");
+        $('#countdown').text(roundTime);
+        $('#countdown').show("slow");
+        $('#Start').show("slow");
+    }
+    
     currentRoom=r;
 }
 );
@@ -129,15 +146,14 @@ socket.on("4ALS end", (room,p)=>{
         for (let i=0;i<5;i++){
             changeCouleurInterieur(i,false);
         }
+        var audio = new Audio('/components/times-up.mp3');
     }
     else {
-        var audio = new Audio('/components/times-up.mp3');
+        var audio = new Audio('/components/4ALS.mp3');
         audio.play();
         clearInterval(countdownInterval);
         $('#countdown').hide("slow");
-        $('#Start').show("slow");
         $('#settings-button').show("slow");
-
     }  
     $(`#${p.username}-score`).text(p.points);
     
@@ -166,6 +182,11 @@ socket.on("4ALS answer",(bool,state)=>{
         }
     }
     currentRoom.state=state;
+});
+
+socket.on("4ALS update score",(player,room)=>{
+    currentRoom=room;
+    $(`#${player.username}-score`).text(player.points);
 });
 
 
@@ -221,7 +242,7 @@ function changeCouleurExterieur(n,bool){
 
 function validerPoints(target){
     $('#btn-validate').off('click');
-    socket.emit("change points",target.dataset.username,$("#score-input").val());
+    socket.emit("4ALS change points",target.dataset.username,$("#score-input").val());
 }
 
 function vrai(){

@@ -55,12 +55,11 @@ socket.on("4ALS current player",(r)=>{
     if (currentplayer!=null){
         $(`#${currentplayer}`).css('background-color','white');
     }
-    $(`#${r.state.currentPlayer}`).css('background-color','orange');
+    if (r.state.currentPlayer){
+        $(`#${r.state.currentPlayer}`).css('background-color','orange');
+    }
     currentRoom=r;
-    
-
-}
-);
+});
 
 socket.on("4ALS start",(r)=>{
     currentRoom=r;
@@ -114,6 +113,14 @@ socket.on("4ALS end",(r,player)=>{
     updateScore(r,player);
 })
 
+socket.on("4ALS time",(time)=>{
+    currentRoom.options.time=time;
+});
+
+socket.on("4ALS update score",(player,room)=>{
+    currentRoom=room;
+    $(`#${player.username}-score`).text(player.points);
+});
 
 socket.on("disconnect",()=>{
     alert("L'hôte s'est déconnecté");

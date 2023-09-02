@@ -14,7 +14,7 @@ export default function (io) {
     router.get('/', (req, res) => {
         res.render('faf/fafHome');
     });
-    var rooms = [{ players: [], id: 123456789, state: { currentPlayer:null, start: false, maxScore: 0,score:0 }}];
+    var rooms = [{ players: [], id: 123456789, spectateurs:[], state: { currentPlayer:null, start: false, maxScore: 0,score:0 },options:{roundTime:20}}];
     var listeCodes = [];
 
     router.post('/', (req, res) => {
