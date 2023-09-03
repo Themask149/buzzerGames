@@ -62,7 +62,7 @@ export default function (io) {
 
         socket.once('4ALSplayerDataHost', (player) => {
             console.log("Receiving playerDataHost in 4ALS");
-            if (!/^[A-Za-z0-9]*$/.test(player.username)) {
+            if (!/^[A-Za-z0-9]*[A-Za-z0-9\s]+[A-Za-z0-9]*$/.test(player.username)) {
                 socket.disconnect();
             }
             else if (!rooms.find((room) => { return player.roomId === room.id; })) {
@@ -80,8 +80,8 @@ export default function (io) {
         });
 
         socket.on('4ALSplayerData', (player) => {
-            if (!/^[A-Za-z0-9]*$/.test(player.username)) {
-                io.in(player.socketId).emit("error", "Choississez un pseudo qu'avec des caractères alphanumériques");
+            if (!/^[A-Za-z0-9]*[A-Za-z0-9\s]+[A-Za-z0-9]*$/.test(player.username)) {
+                io.in(player.socketId).emit("4ALS error", "Choississez un pseudo qu'avec des caractères alphanumériques");
                 
             }
             else {
@@ -175,11 +175,12 @@ export default function (io) {
         });
 
         socket.on('4ALS change points', (username,points)=>{
-            console.log(username);
-            console.log(points);
-            var player = r.players.find((player) => { return player.username === username; });
-            player.points += parseInt(points);
-            io.to(p.roomId).emit("4ALS update score",player,r);
+            // check if points integer
+            if (p && p.host && points.match(/^[0-9]+$/)!=null) {
+                var player = r.players.find((player) => { return player.username === username; });
+                player.points += parseInt(points);
+                io.to(p.roomId).emit("4ALS update score",player,r);
+            }
         });
 
 
@@ -192,6 +193,7 @@ export default function (io) {
             if (p.host) {
                 bool = true;
                 io.in(socketId).disconnectSockets();
+                
             }
             if (bool) {
                 io.to(socket.id).emit("kick-success");

@@ -1,9 +1,11 @@
 // jshint esversion:6
-const player = {
+var myplayer = {
     host: true,
     roomId: null,
+    player: true,
     username: "",
     socketId: "",
+    points:0,
 };
 
 const socket = io();
@@ -14,9 +16,9 @@ var roundTime=20;
 
 $("#form-pseudo").on('submit', function (e){
     e.preventDefault();
-    player.username= $('#username').val();
-    player.roomId=$("#code").val();
-    player.socketId=socket.id;
+    myplayer.username= $('#username').val();
+    myplayer.roomId=$("#code").val();
+    myplayer.socketId=socket.id;
 
     $("#user-card").hide("slow");
     $("#user-card").empty();
@@ -31,6 +33,92 @@ $("#form-pseudo").on('submit', function (e){
         }
     });
 
-    socket.emit("FAFplayerDataHost",player);
+    socket.emit("FAFplayerDataHost",myplayer);
 });
+
+socket.on('FAF host launch',(player,room)=>{
+    myplayer=player;
+    currentRoom=room;
+});
+
+socket.on('FAF new spectateur',(room,spectateur)=>{
+    currentRoom=room;
+    $('#spectateurs-list').append(`<li class="list-group-item" id="${spectateur.username}">${spectateur.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${spectateur.socketId}-kick" class="btn btn-secondary kick">kick</button> </div> </span></li>`);
+    $(document).on('click',`#${spectateur.socketId}-kick`,(e)=>{
+        e.preventDefault();
+        console.log('kick');
+        socket.emit("FAF kick",player.socketId);
+    });
+});
+
+socket.on("FAF new player",(room,player)=>{
+    currentRoom=room;
+    var i=1;
+    if (1<=room.players.length<=2){
+        room.players.forEach((player)=>{
+            addPlayer(player,i);
+            i++;
+        });
+    }
+    
+});
+
+socket.on("FAF remove player",(room)=>{
+    if (room.players.length==0 || room.players.length==1){
+        i=1;
+        room.players.forEach((player)=>{
+            addPlayer(player,i);
+            i++;
+        });
+        while (i<=2){
+            $(`#joueur${i}-name`).text(`Joueur ${i}`);
+            $(`#joueur${i}-score-div`).html("");
+            i++;
+        }
+    }
+    else {
+        alert("Inconsistence du nombre de joueur: "+ JSON.stringify(room));
+        document.location.href="/";
+    }
+})
+
+socket.on("FAF remove spectateur",(room,player)=>{
+    currentRoom=room;
+    $(`#${player.username}`).remove();
+});
+
+
+socket.on("disconnect",()=>{
+    alert("L'hôte s'est déconnecté");
+    document.location.href="/";
+});
+
+socket.on("FAF error",(err)=>{
+    alert(err);
+    document.location.href="/";
+});
+
+function addPlayer(player,i){
+    $(`#joueur${i}-name`).data("username",player.username);
+    $(`#joueur${i}-name`).html(`<h3>${player.username}</h3> <button type="button" id="${player.socketId}-kick" class="btn btn-secondary kick">kick</button>`);
+    $(`#joueur${i}-score-div`).html(`<button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
+    $(document).on('click',`#${player.username}-score`,(e)=>{
+        e.preventDefault();
+        console.log('score '+player.username);
+        $('#pseudo-modal').text(`${player.username}`);
+        $('#modal-score-label').text("Donnez le nombre de points à ajouter ou à enlever (mettre un - ) :");
+        $('#btn-validate').attr("data-username", `${player.username}`);
+        $('#btn-validate').on('click',(e)=>{
+            validerPoints(e.target);
+        });
+    });
+    $(document).on('click',`#${player.socketId}-kick`,(e)=>{
+        if (!currentRoom.state.start){
+            e.preventDefault();
+            console.log('kick');
+            socket.emit("FAF kick",player.socketId);
+        }
+    });
+}
+
 

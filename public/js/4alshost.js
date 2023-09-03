@@ -1,5 +1,5 @@
 // jshint esversion:6
-const player = {
+var myplayer = {
     host: true,
     roomId: null,
     username: "",
@@ -28,9 +28,9 @@ $(function(){
 
 $("#form-pseudo").on('submit', function (e){
     e.preventDefault();
-    player.username= $('#username').val();
-    player.roomId=$("#code").val();
-    player.socketId=socket.id;
+    myplayer.username= $('#username').val();
+    myplayer.roomId=$("#code").val();
+    myplayer.socketId=socket.id;
 
     $("#user-card").hide("slow");
     $("#user-card").empty();
@@ -45,7 +45,7 @@ $("#form-pseudo").on('submit', function (e){
         }
     });
 
-    socket.emit("4ALSplayerDataHost",player);
+    socket.emit("4ALSplayerDataHost",myplayer);
 });
 
 $('#Start').on('click',(e)=>{
@@ -72,12 +72,15 @@ $('#4als-time-button').on('click',(e)=>{
 
 socket.on('4ALS host launch',(player,room)=>{
     $('#player-list').append(`<li class="list-group-item">${player.username} (Host) </li>`);
+    myplayer=player;
     currentRoom=room;
 });
 
 socket.on("4ALS new player",(player)=>{
     $('#player-list').append(`<li class="list-group-item" id="${player.username}">${player.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${player.socketId}-kick" class="btn btn-secondary kick">kick</button></div><div class="score"> <button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button> </div> </span></li>`);
     $(document).on('click',`#${player.socketId}-kick`,(e)=>{
+        e.stopPropagation();
+        e.preventDefault();
         if (!currentRoom.state.start){
             e.preventDefault();
             console.log('kick');
@@ -93,6 +96,7 @@ socket.on("4ALS new player",(player)=>{
     });
     $(document).on('click',`#${player.username}-score`,(e)=>{
         e.preventDefault();
+        e.stopPropagation();
         console.log('score '+player.username);
         $('#pseudo-modal').text(`${player.username}`);
         $('#modal-score-label').text("Donnez le nombre de points à ajouter ou à enlever (mettre un - ) :");

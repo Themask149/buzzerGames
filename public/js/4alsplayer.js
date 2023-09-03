@@ -1,5 +1,5 @@
 // jshint esversion:6
-var player = {
+var myplayer = {
     host: false,
     roomId: null,
     username: "",
@@ -13,20 +13,20 @@ const socket = io();
 
 $("#form-pseudo").on('submit', function (e){
     e.preventDefault();
-    player.username= $('#username').val();
-    player.roomId=parseInt($("#code").val());
-    player.socketId=socket.id;
+    myplayer.username= $('#username').val();
+    myplayer.roomId=parseInt($("#code").val());
+    myplayer.socketId=socket.id;
 
     $("#user-card").hide("slow");
     $("#user-card").empty();
     $('#app-div').show("slow");
     
 
-    socket.emit("4ALSplayerData",player);
+    socket.emit("4ALSplayerData",myplayer);
 });
 
 socket.on("4ALS player init",(room,p)=>{
-    player=p;
+    myplayer=p;
     room.players.forEach((player)=>{
         if (player.host){
             $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} (Host) </li>`);
@@ -43,6 +43,7 @@ socket.on("4ALS remove player",(player)=>{
     console.log(`Bye bye ${player.username}`);
     $(`#${player.username}`).remove();
 });
+
 socket.on("4ALS new player",(player)=>{
     $('#player-list').append(`<li class="list-group-item" id="${player.username}" >${player.username} <div class="score"><button type="button" id="${player.username}-score" class="btn btn-success score-point edit">${player.points}</button></div></li>`);
 });
