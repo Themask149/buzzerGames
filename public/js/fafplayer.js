@@ -67,6 +67,11 @@ socket.on("FAF new player",(room,player)=>{
     
 });
 
+socket.on("FAF time", (room) => {
+    currentRoom=room;
+});
+
+
 
 socket.on("FAF remove player",(room)=>{
     if (room.players.length==0 || room.players.length==1){

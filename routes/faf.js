@@ -117,6 +117,13 @@ export default function (io) {
             console.log("Room :"+JSON.stringify(r));
         });
 
+        socket.on("FAF time", (r) => {
+            if (p && p.host) {
+                r.options.roundTime = roundTime;
+                io.to(p.roomId).emit("FAF time", r);
+            }
+        });
+
 
         socket.on("FAF kick", (socketId) => {
             var bool = false;

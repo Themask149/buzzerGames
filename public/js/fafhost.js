@@ -12,6 +12,9 @@ const socket = io();
 
 var currentRoom;
 var roundTime=20;
+var period=100;
+var step=10*period/roundTime;
+var countdownInterval;
 
 
 $("#form-pseudo").on('submit', function (e){
@@ -34,6 +37,22 @@ $("#form-pseudo").on('submit', function (e){
     });
 
     socket.emit("FAFplayerDataHost",myplayer);
+});
+
+$('#Start').on('click',(e)=>{
+    for (var i=1;i<=4;i++){
+        changeCouleurInterieur(i,100);
+        changeCouleurExterieur(i,100);
+    }
+    $('#Start').hide("slow");
+    $('#settings-button').hide("slow");
+    step=10*period/roundTime;
+    countdownInterval=setInterval(updateCountdown,period);
+});
+
+$('#faf-time-button').on('click',(e)=>{
+    roundTime=$('#faf-time').val();
+    socket.emit("FAF time",roundTime);
 });
 
 socket.on('FAF host launch',(player,room)=>{
@@ -119,6 +138,71 @@ function addPlayer(player,i){
             socket.emit("FAF kick",player.socketId);
         }
     });
+}
+
+
+function changeCouleurInterieur(n, percent){
+    $(`#grad-interieur-${n}-orange`).attr('offset', `${percent}%`);
+    $(`#grad-interieur-${n}-blue`).attr('offset', `${percent}%`);
+}
+
+function changeCouleurExterieur(n,bool){
+    if (!bool){
+        $(`#exterieur-${n}`).css('fill','rgb(216, 216, 216)');
+    }
+    else
+        $(`#exterieur-${n}`).css('fill','darkorange');
+}
+
+function updateCountdown(){
+    try{    
+        if ($(`#grad-interieur-4-orange`).attr('offset')=="0%"&&$(`#grad-interieur-4-blue`).attr('offset')=="0%"){
+            if ($(`#grad-interieur-3-orange`).attr('offset')=="0%"&&$(`#grad-interieur-3-blue`).attr('offset')=="0%"){
+                if ($(`#grad-interieur-2-orange`).attr('offset')=="0%"&&$(`#grad-interieur-2-blue`).attr('offset')=="0%"){
+                    if ($(`#grad-interieur-1-orange`).attr('offset')=="0%"&&$(`#grad-interieur-1-blue`).attr('offset')=="0%"){
+                        clearInterval(countdownInterval);
+                        $('#Start').show("slow");
+                        $('#settings-button').show("slow");
+                    }
+                    else{
+                        updateColor(1)
+                    }
+                }
+                else{
+                    updateColor(2)
+                }
+            }
+            else{
+                updateColor(3)
+            }
+        }
+        else{
+            updateColor(4)
+        }
+    }
+    catch(err){
+        console.log(err);
+    }
+    
+}
+
+function updateColor(n){
+    if ($(`#grad-interieur-${n}-orange`).attr('offset')=="100%"&&$(`#grad-interieur-${n}-blue`).attr('offset')=="100%"){
+        var newPercent = Math.max(0, extractNumberFromPercent($(`#grad-interieur-${n}-orange`).attr('offset')) - step / (n*10));
+        $(`#grad-interieur-${n}-orange`).attr('offset',`${newPercent}%`);
+        return
+    }
+    else if ($(`#grad-interieur-${n}-blue`).attr('offset')!="0%"){
+        var newPercentOrange = Math.max(0, extractNumberFromPercent($(`#grad-interieur-${n}-orange`).attr('offset')) - step / (n*10));
+        var newPercentBlue = Math.max(0, extractNumberFromPercent($(`#grad-interieur-${n}-blue`).attr('offset')) - step / (n*10));
+        $(`#grad-interieur-${n}-orange`).attr('offset',`${newPercentOrange}%`);
+        $(`#grad-interieur-${n}-blue`).attr('offset',`${newPercentBlue}%`);
+        return
+    }
+}
+
+function extractNumberFromPercent(percent){
+    return parseFloat(percent.substring(0,percent.length-1));
 }
 
 
