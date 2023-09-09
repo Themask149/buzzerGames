@@ -14,7 +14,7 @@ export default function (io) {
     router.get('/', (req, res) => {
         res.render('faf/fafHome');
     });
-    var rooms = [{ players: [], id: 123456789, spectateurs:[], state: { start: false},options:{roundTime:20}}];
+    var rooms = [{ players: [], id: 123456789, spectateurs:[], state: { start: false,main:null},options:{roundTime:20}}];
     var listeCodes = [];
 
     router.post('/', (req, res) => {
@@ -123,6 +123,23 @@ export default function (io) {
                 io.to(p.roomId).emit("FAF time", r);
             }
         });
+
+        socket.on("FAF current player", (player) => {
+            if (p && p.host) {
+                console.log(`[FAF ${r.id}] ${player.username} a la main `);
+                r.state.main=player;
+                io.to(p.roomId).emit("FAF current player", r);
+            }
+        });
+
+        socket.on("FAF start",()=>{
+            if (p && p.host&&!r.state.start) {
+                r.state.start = true;
+                io.to(p.roomId).emit("FAF start");
+            }
+        });
+
+        
 
 
         socket.on("FAF kick", (socketId) => {

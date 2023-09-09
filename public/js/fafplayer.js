@@ -99,3 +99,36 @@ socket.on("FAF error",(err)=>{
     alert(err);
     document.location.href="/";
 });
+
+function liberer(){
+    console.log("libere");
+    $("#buzzer-state").text("BUZZ");
+    $("#buzzer-circle").attr('fill',"green");
+    $("#buzzer").on('click',buzzerAction);
+    $(document).keydown(function(e){
+            if (e.code === "Space"){
+    
+                buzzerAction();
+            }
+        });
+    socket.emit("libere");
+
+}
+
+function block(){
+    console.log("block");
+    $("#buzzer-state").text("Bloqué");
+    $("#buzzer-circle").attr('fill',"yellow");
+    $("#buzzer").off('click');
+    $(document).off('keydown');
+    socket.emit("block");
+
+}
+
+function buzzed(){
+    socket.emit("buzz");
+    $("#buzzer-state").text("Buzzed");
+    $("#buzzer-circle").attr('fill',"red");
+    $(document).off('keydown');
+}
+

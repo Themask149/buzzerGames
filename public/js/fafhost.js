@@ -11,10 +11,13 @@ var myplayer = {
 const socket = io();
 
 var currentRoom;
+var currentPlayer;
 var roundTime=20;
 var period=100;
 var step=10*period/roundTime;
 var countdownInterval;
+var boite=4;
+
 
 
 $("#form-pseudo").on('submit', function (e){
@@ -47,7 +50,9 @@ $('#Start').on('click',(e)=>{
     $('#Start').hide("slow");
     $('#settings-button').hide("slow");
     step=10*period/roundTime;
+    socket.emit("FAF start");
     countdownInterval=setInterval(updateCountdown,period);
+
 });
 
 $('#faf-time-button').on('click',(e)=>{
@@ -62,7 +67,7 @@ socket.on('FAF host launch',(player,room)=>{
 
 socket.on('FAF new spectateur',(room,spectateur)=>{
     currentRoom=room;
-    $('#spectateurs-list').append(`<li class="list-group-item" id="${spectateur.username}">${spectateur.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${spectateur.socketId}-kick" class="btn btn-secondary kick">kick</button> </div> </span></li>`);
+    $('#spectateurs-list').append(`<li class="list-group-item" id="spectateur-${spectateur.username}">${spectateur.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" id="${spectateur.socketId}-kick" class="btn btn-secondary kick">kick</button> </div> </span></li>`);
     $(document).on('click',`#${spectateur.socketId}-kick`,(e)=>{
         e.preventDefault();
         console.log('kick');
@@ -80,6 +85,16 @@ socket.on("FAF new player",(room,player)=>{
         });
     }
     
+});
+
+socket.on("FAF current player",(room)=>{
+    currentRoom=room;
+    if (currentPlayer!=null){
+        $(`#${currentplayer}`).css('background-color','white');
+    }
+    currentPlayer=room.state.main;
+    $(`#joueur-${currentPlayer}`).css('background-color','orange');
+    $('#Start').show("slow");
 });
 
 socket.on("FAF remove player",(room)=>{
@@ -119,7 +134,7 @@ socket.on("FAF error",(err)=>{
 
 function addPlayer(player,i){
     $(`#joueur${i}-name`).data("username",player.username);
-    $(`#joueur${i}-name`).html(`<h3>${player.username}</h3> <button type="button" id="${player.socketId}-kick" class="btn btn-secondary kick">kick</button>`);
+    $(`#joueur${i}-name`).html(`<h3 id="joueur-${player.username}">${player.username}</h3> <button type="button" id="${player.socketId}-kick" class="btn btn-secondary kick">kick</button>`);
     $(`#joueur${i}-score-div`).html(`<button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
     $(document).on('click',`#${player.username}-score`,(e)=>{
         e.preventDefault();
@@ -136,6 +151,11 @@ function addPlayer(player,i){
             e.preventDefault();
             console.log('kick');
             socket.emit("FAF kick",player.socketId);
+        }
+    });
+    $(document).on('click',`#joueur-${player.username}`,(e)=>{
+        if (!currentRoom.state.start){
+            socket.emit("FAF current player",player.username);
         }
     });
 }
@@ -155,35 +175,19 @@ function changeCouleurExterieur(n,bool){
 }
 
 function updateCountdown(){
-    try{    
-        if ($(`#grad-interieur-4-orange`).attr('offset')=="0%"&&$(`#grad-interieur-4-blue`).attr('offset')=="0%"){
-            if ($(`#grad-interieur-3-orange`).attr('offset')=="0%"&&$(`#grad-interieur-3-blue`).attr('offset')=="0%"){
-                if ($(`#grad-interieur-2-orange`).attr('offset')=="0%"&&$(`#grad-interieur-2-blue`).attr('offset')=="0%"){
-                    if ($(`#grad-interieur-1-orange`).attr('offset')=="0%"&&$(`#grad-interieur-1-blue`).attr('offset')=="0%"){
-                        clearInterval(countdownInterval);
-                        $('#Start').show("slow");
-                        $('#settings-button').show("slow");
-                    }
-                    else{
-                        updateColor(1)
-                    }
-                }
-                else{
-                    updateColor(2)
-                }
-            }
-            else{
-                updateColor(3)
-            }
+    updateColor(boite);
+    if ($(`#grad-interieur-${n}-orange`).attr('offset')=="0%"&&$(`#grad-interieur-${n}-blue`).attr('offset')=="0%"){
+        if (boite==1){
+            boite=4;
+            clearInterval(countdownInterval);
+            $('#Start').show("slow");
+            $('#settings-button').show("slow");
         }
         else{
-            updateColor(4)
+            boite--;
+            socket.emit("FAF main",boite);
         }
     }
-    catch(err){
-        console.log(err);
-    }
-    
 }
 
 function updateColor(n){
