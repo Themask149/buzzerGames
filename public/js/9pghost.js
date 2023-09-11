@@ -11,6 +11,9 @@ const player = {
 
 const socket = io();
 
+var buzz = new Audio('/components/buzzsound.mp3');
+buzz.preload = 'auto';
+
 let start = false;
 
 $(".modes").on('click',(e)=>{
@@ -226,8 +229,8 @@ function buzzed(){
 }
 
 function soundPlay(){
-    var audio = new Audio('/components/buzzsound.mp3');
-    audio.play();
+    
+    buzz.play();
 }
 
 function afficheScore(bool,p){

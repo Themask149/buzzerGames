@@ -6,11 +6,19 @@ var myplayer = {
     username: "",
     socketId: "",
     points:0,
+    state:"blocked"
 };
 
 var currentRoom;
+var currentPlayer;
+var ding = new Audio('/components/Ding.mp3');
+ding.preload = 'auto';
+var timesup = new Audio('/components/times-up.mp3');
+timesup.preload = 'auto';
+var buzz = new Audio('/components/buzzsound.mp3');
+buzz.preload = 'auto';
 
-const socket = io();
+const socket = io("/faf");
 
 $("#form-pseudo").on('submit', function (e){
     e.preventDefault();
@@ -33,7 +41,7 @@ socket.on("FAF player init",(room,p)=>{
     var i = 1;
     if (1<=room.players.length<=2){
         room.players.forEach((player)=>{
-            $(`#joueur${i}-name`).text(player.username);
+            $(`#joueur${i}-name`).html(`<h3 id="joueur-${player.username}">${player.username}</h3>`);
             $(`#joueur${i}-score-div`).html(`<button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
             i++;
         });
@@ -47,11 +55,12 @@ socket.on("FAF spectateur init",(room,p)=>{
     var i = 1;
     if (1<=room.players.length<=2){
         room.players.forEach((player)=>{
-            $(`#joueur${i}-name`).text(player.username);
+            $(`#joueur${i}-name`).html(`<h3 id="joueur-${player.username}">${player.username}</h3>`);
             $(`#joueur${i}-score-div`).html(`<button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
             i++;
         });
     }
+    $("#spec-message").show();
 });
 
 socket.on("FAF new player",(room,player)=>{
@@ -59,7 +68,7 @@ socket.on("FAF new player",(room,player)=>{
     currentRoom=room;
     if (1<=room.players.length<=2){
         room.players.forEach((player)=>{
-            $(`#joueur${i}-name`).text(player.username);
+            $(`#joueur${i}-name`).html(`<h3 id="joueur-${player.username}">${player.username}</h3>`);
             $(`#joueur${i}-score-div`).html(`<button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
             i++;
         });
@@ -67,10 +76,42 @@ socket.on("FAF new player",(room,player)=>{
     
 });
 
+socket.on("FAF current player",(room)=>{
+    currentRoom=room;
+    if (currentPlayer!=null){
+        $(`#joueur-${currentPlayer}`).css('background-color','white');
+    }
+    currentPlayer=room.players[room.state.main].username;
+    $(`#joueur-${currentPlayer}`).css('background-color','orange');
+});
+
 socket.on("FAF time", (room) => {
     currentRoom=room;
 });
 
+socket.on("FAF free", (r)=>{
+    currentRoom=r;
+    myplayer.state="free";
+    liberer();
+});
+
+socket.on("FAF block", (r)=>{
+    currentRoom=r;
+    myplayer.state="blocked";
+    block();
+});
+
+socket.on("FAF end", (bool,room) => {
+    currentRoom=room;
+    $(`#joueur-${currentPlayer}`).css('background-color','white');
+    currentPlayer=null;
+    if (!bool){
+        timesup.play();
+    }
+    else {
+        ding.play();
+    }
+});
 
 
 socket.on("FAF remove player",(room)=>{
@@ -88,6 +129,11 @@ socket.on("FAF remove player",(room)=>{
         }
     }
 })
+
+socket.on("FAF update score",(player,room)=>{
+    currentRoom=room;
+    $(`#${player.username}-score`).text(player.points);
+});
 
 
 socket.on("disconnect",()=>{
@@ -107,12 +153,14 @@ function liberer(){
     $("#buzzer").on('click',buzzerAction);
     $(document).keydown(function(e){
             if (e.code === "Space"){
-    
                 buzzerAction();
             }
         });
-    socket.emit("libere");
+}
 
+function buzzerAction(){
+    buzz.play();
+    buzzed();
 }
 
 function block(){
@@ -121,12 +169,12 @@ function block(){
     $("#buzzer-circle").attr('fill',"yellow");
     $("#buzzer").off('click');
     $(document).off('keydown');
-    socket.emit("block");
-
 }
 
 function buzzed(){
-    socket.emit("buzz");
+    socket.emit("FAF buzzed",myplayer.username)
+    myplayer.state="buzzed";
+    $("#buzzer").off('click');
     $("#buzzer-state").text("Buzzed");
     $("#buzzer-circle").attr('fill',"red");
     $(document).off('keydown');

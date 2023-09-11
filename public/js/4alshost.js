@@ -13,6 +13,15 @@ var roundTime=45;
 var countdownInterval;
 var currentplayer;
 
+var ding = new Audio('/components/Ding.mp3');
+ding.preload = 'auto';
+var start = new Audio('/components/start_of_4als.mp3');
+start.preload = 'auto';
+var timesup = new Audio('/components/times-up.mp3');
+timesup.preload = 'auto';
+var QALS = new Audio('/components/4ALS.mp3');
+QALS.preload = 'auto';
+
 $(function(){
     $(document).keydown(function(e){
             if (e.key ==="v" || e.key ===" "){
@@ -133,8 +142,8 @@ socket.on("4ALS current player",(r)=>{
 
 socket.on("4ALS start", (room) => {
     currentRoom=room;
-    var audio = new Audio('/components/start_of_4als.mp3');
-    audio.play();
+    
+    start.play();
     for (let i=0;i<5;i++){
         changeCouleurInterieur(i,false);
         changeCouleurExterieur(i,false);
@@ -150,11 +159,11 @@ socket.on("4ALS end", (room,p)=>{
         for (let i=0;i<5;i++){
             changeCouleurInterieur(i,false);
         }
-        var audio = new Audio('/components/times-up.mp3');
+        timesup.play();
     }
     else {
-        var audio = new Audio('/components/4ALS.mp3');
-        audio.play();
+        
+        QALS.play();
         clearInterval(countdownInterval);
         $('#countdown').hide("slow");
         $('#settings-button').show("slow");
@@ -176,8 +185,8 @@ socket.on("4ALS answer",(bool,state)=>{
             socket.emit("4ALS end");
         }
         else {
-            var audio = new Audio('/components/Ding.mp3');
-            audio.play();
+            
+            ding.play();
         }
     }
     else{

@@ -9,6 +9,15 @@ var myplayer = {
 
 var currentRoom;
 
+var ding = new Audio('/components/Ding.mp3');
+ding.preload = 'auto';
+var start = new Audio('/components/start_of_4als.mp3');
+start.preload = 'auto';
+var timesup = new Audio('/components/times-up.mp3');
+timesup.preload = 'auto';
+var QALS = new Audio('/components/4ALS.mp3');
+QALS.preload = 'auto';
+
 const socket = io();
 
 $("#form-pseudo").on('submit', function (e){
@@ -64,8 +73,7 @@ socket.on("4ALS current player",(r)=>{
 
 socket.on("4ALS start",(r)=>{
     currentRoom=r;
-    var audio = new Audio('/components/start_of_4als.mp3');
-    audio.play();
+    start.play();
     for (let i=0;i<5;i++){
         changeCouleurInterieur(i,false);
         changeCouleurExterieur(i,false);
@@ -84,8 +92,7 @@ socket.on("4ALS answer",(bool,state)=>{
                 changeCouleurExterieur(state.maxScore,true);
             }
             if (state.score!=4){
-                var audio = new Audio('/components/Ding.mp3');
-                audio.play();
+                ding.play();
             }
         }
         else{
@@ -103,12 +110,10 @@ socket.on("4ALS end",(r,player)=>{
         for (let i=0;i<5;i++){
             changeCouleurInterieur(i,false);
         }
-        var audio = new Audio('/components/times-up.mp3');
-        audio.play();
+        timesup.play();
     }
     else {
-        var audio = new Audio('/components/4ALS.mp3');
-        audio.play();
+        QALS.play();
 
     }  
     updateScore(r,player);

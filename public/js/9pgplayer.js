@@ -13,6 +13,8 @@ var player = {
 
 const socket = io();
 
+var buzz = new Audio('/components/buzzsound.mp3');
+
 $("#form-pseudo").on('submit', function (e){
     e.preventDefault();
     player.username= $('#username').val();
@@ -137,14 +139,15 @@ function block(){
 
 function buzzed(){
     socket.emit("buzz");
+    $("#buzzer").off('click');
     $("#buzzer-state").text("Buzzed");
     $("#buzzer-circle").attr('fill',"red");
     $(document).off('keydown');
 }
 
 function buzzerAction(){
-    var audio = new Audio('/components/buzzsound.mp3');
-    audio.play();
+    
+    buzz.play();
     buzzed();
 }
 
