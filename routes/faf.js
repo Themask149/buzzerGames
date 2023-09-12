@@ -201,10 +201,10 @@ export default function (io) {
 
         socket.on("FAF main",(boite)=>{
             console.log("changement de main",JSON.stringify(r.state.pointsRule));
-            r.state.pointsRule[r.state.mainInGame][0].shift();
+            r.state.pointsRule[r.state.mainInGame][0] = r.state.pointsRule[r.state.mainInGame][0].filter(item => item !== boite+1);
             if (r.state.pointsRule[r.state.mainInGame][0].length==0){
                 r.state.pointsRule[r.state.mainInGame].shift();
-                if (r.state.pointsRule[1-r.state.mainInGame][0][0]==boite){
+                if (r.state.pointsRule[1-r.state.mainInGame][0].includes(boite)){
                     r.state.mainInGame=1-r.state.mainInGame;
                     r.players[r.state.mainInGame].state="free";
                     r.players[1-r.state.mainInGame].state="blocked";
@@ -217,7 +217,7 @@ export default function (io) {
                     console.log(JSON.stringify(r));
                 }
             }
-            else if (r.state.pointsRule[r.state.mainInGame][0][0]==boite){
+            else if ( r.state.pointsRule[r.state.mainInGame][0].includes(boite) ){
 
             }
             else{

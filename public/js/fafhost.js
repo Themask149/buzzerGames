@@ -152,10 +152,10 @@ socket.on("FAF current player",async (room)=>{
     }
     currentPlayer=room.players[room.state.main].username;
     if (room.players[0].username==currentPlayer){
-        await moveBoites(true);
+        moveBoites(true);
     }
     else {
-        await moveBoites(false);
+        moveBoites(false);
     }
     $(`#joueur-${currentPlayer}`).css('background-color','orange');
     $('#Start').show("slow");
