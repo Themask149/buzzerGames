@@ -176,10 +176,16 @@ export default function (io) {
                     fafNamespace.to(p.roomId).emit("FAF block",r)
                 }
                 else {
+                    console.log(` [FAF ${r.id}] ${player.username} a perdu la main`);
+                    console.log(JSON.stringify(r.state.pointsRule));
+                    if (r.state.pointsRule[1-r.state.mainInGame].length==0){
+                        r.state.pointsRule[1-r.state.mainInGame].push([]);
+                    }
                     var tab = r.state.pointsRule[r.state.mainInGame].shift();
                     for (let el of tab){
                         r.state.pointsRule[1-r.state.mainInGame][0].unshift(el);
                     }
+                    console.log(JSON.stringify(r.state.pointsRule));
                     r.state.mainInGame=1-r.state.mainInGame;
                     r.players[r.state.mainInGame].state="free";
                     r.players[1-r.state.mainInGame].state="blocked";
@@ -194,6 +200,7 @@ export default function (io) {
         });
 
         socket.on("FAF main",(boite)=>{
+            console.log("changement de main",JSON.stringify(r.state.pointsRule));
             r.state.pointsRule[r.state.mainInGame][0].shift();
             if (r.state.pointsRule[r.state.mainInGame][0].length==0){
                 r.state.pointsRule[r.state.mainInGame].shift();
@@ -218,6 +225,7 @@ export default function (io) {
                 console.log("Un problème imprévu a eu lieu lors du contrôle des boites");
                 console.log(JSON.stringify(r));
             }
+            console.log("changement de main",JSON.stringify(r.state.pointsRule));
 
         })
 

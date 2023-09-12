@@ -335,7 +335,7 @@ function validerPoints(target){
 
 const moveX=25;
 const pas=100;
-const temps=1000;
+const temps=500;
 async function moveBoite(n,main,start){
     if (!start){
         if (!main){
