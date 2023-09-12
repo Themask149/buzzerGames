@@ -156,6 +156,7 @@ socket.on("FAF block", (r)=>{
 });
 
 socket.on("FAF end", (bool,room) => {
+    block();
     currentRoom=room;
     $(`#joueur-${room.players[0].username}`).css('background-color','whitesmoke');
     $(`#joueur-${room.players[1].username}`).css('background-color','whitesmoke');
