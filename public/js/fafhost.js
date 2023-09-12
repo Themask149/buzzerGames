@@ -228,8 +228,8 @@ socket.on("FAF main", (room)=>{
 
 socket.on("FAF end", (bool,room) => {
     currentRoom=room;
-    $(`#joueur-${room.players[room.state.mainInGame].username}`).css('background-color','whitesmoke');
-    $(`#joueur-${room.players[1-room.state.mainInGame].username}`).css('background-color','whitesmoke');
+    $(`#joueur-${room.players[0].username}`).css('background-color','whitesmoke');
+    $(`#joueur-${room.players[1].username}`).css('background-color','whitesmoke');
     currentPlayer=null;
     $('#Start').show("slow");
     $('#settings-button').show("slow");

@@ -89,7 +89,7 @@ socket.on("FAF new player",(room,player)=>{
 socket.on("FAF current player",(room)=>{
     currentRoom=room;
     if (currentPlayer!=null){
-        $(`#joueur-${currentPlayer}`).css('background-color','lightgrey');
+        $(`#joueur-${currentPlayer}`).css('background-color','whitesmoke');
     }
     currentPlayer=room.players[room.state.main].username;
     if (room.players[0].username==currentPlayer){
@@ -157,7 +157,8 @@ socket.on("FAF block", (r)=>{
 
 socket.on("FAF end", (bool,room) => {
     currentRoom=room;
-    $(`#joueur-${currentPlayer}`).css('background-color','lightgrey');
+    $(`#joueur-${room.players[room.state.mainInGame].username}`).css('background-color','whitesmoke');
+    $(`#joueur-${room.players[1-room.state.mainInGame].username}`).css('background-color','whitesmoke');
     currentPlayer=null;
     if (!bool){
         lowLag.play('/components/times-up.mp3');
@@ -197,6 +198,7 @@ socket.on("disconnect",()=>{
 
 socket.on("FAF error",(err)=>{
     alert(err);
+    console.log(boite);
     document.location.href="/";
 });
 
@@ -311,6 +313,7 @@ function updateCountdown(){
         }
         else{
             boite--;
+            console.log(boite);
             changeCouleurExterieur(boite+1,false);
         }
     }
