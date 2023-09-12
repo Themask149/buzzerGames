@@ -187,14 +187,15 @@ export default function (io) {
                     }
                     console.log(JSON.stringify(r.state.pointsRule));
                     r.state.mainInGame=1-r.state.mainInGame;
-                    r.players[r.state.mainInGame].state="free";
-                    r.players[1-r.state.mainInGame].state="blocked";
+                    
                     fafNamespace.to(p.roomId).emit("FAF switch", r);
                 }
             }
         });
 
         socket.on("FAF restart",()=>{
+            r.players[r.state.mainInGame].state="free";
+            r.players[1-r.state.mainInGame].state="blocked";
             fafNamespace.to(r.players[r.state.mainInGame].socketId).emit("FAF free",r);
             fafNamespace.to(r.players[1-r.state.mainInGame].socketId).emit("FAF block",r);
         });
@@ -210,6 +211,7 @@ export default function (io) {
                     r.players[1-r.state.mainInGame].state="blocked";
                     fafNamespace.to(r.players[r.state.mainInGame].socketId).emit("FAF free",r);
                     fafNamespace.to(r.players[1-r.state.mainInGame].socketId).emit("FAF block",r);
+                    fafNamespace.to(p.roomId).emit("FAF main", r);
                 }
                 else{
                     socket.emit("FAF error","Un problème imprévu a eu lieu lors du contrôle des boites");
@@ -246,7 +248,7 @@ export default function (io) {
         });
 
         socket.on('FAF change points', (username,points)=>{
-            if (p && p.host && points.match(/^[0-9]+$/)!=null) {
+            if (p && p.host && points.match(/^-?[0-9]+$/)!=null) {
                 var player = r.players.find((player) => { return player.username === username; });
                 player.points += parseInt(points);
                 fafNamespace.to(p.roomId).emit("FAF update score",player,r);
@@ -268,7 +270,7 @@ export default function (io) {
         });
 
         socket.on("disconnect", () => {
-            console.log(`[FAF ${r.id}] ${p.username} disconnected`);
+            console.log(`[FAF] ${socket.id} disconnected`);
             if (p && !p.host) {
                 console.log(`Bye bye ${p.username}`);
 

@@ -176,7 +176,7 @@ export default function (io) {
 
         socket.on('4ALS change points', (username,points)=>{
             // check if points integer
-            if (p && p.host && points.match(/^[0-9]+$/)!=null) {
+            if (p && p.host && points.match(/^-?[0-9]+$/)!=null) {
                 var player = r.players.find((player) => { return player.username === username; });
                 player.points += parseInt(points);
                 io.to(p.roomId).emit("4ALS update score",player,r);

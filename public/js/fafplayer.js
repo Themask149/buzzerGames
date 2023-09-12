@@ -8,15 +8,21 @@ var myplayer = {
     points:0,
     state:"blocked"
 };
+const exterieurMatrices = ["matrix(0.024755, 0.999694, -1.000075, 0.009348, 329.05073, 100.564487)","matrix(0.024755, 0.999694, -1.000075, 0.009348, 327.700571, 26.306825)","matrix(0.024755, 0.999694, -1.000075, 0.009348, 325.900431, -47.950544)","matrix(0.024755, 0.999694, -1.000075, 0.009348, 324.457346, -122.505451)"];
+const interieurMatrices =  ["matrix(0.024755, 0.999694, -1.000075, 0.009348, 329.950785, 100.864505)","matrix(0.024755, 0.999694, -1.000075, 0.009348, 327.700571, 26.606885)","matrix(0.024755, 0.999694, -1.000075, 0.009348, 326.800516, -48.100683)","matrix(0.024755, 0.999694, -1.000075, 0.009348, 325.26359, -122.495312)"];
+const textMatrices = ["matrix(2.541135, 0, 0, 1.978724, -341.147898, 151.203053)","matrix(2.541135, 0, 0, 1.978724, -348.952189, 76.573061)","matrix(2.541135, 0, 0, 1.978724, -349.005961, 3.215738)","matrix(2.541135, 0, 0, 1.978724, -351.706218, -73.291895)"];
 
 var currentRoom;
 var currentPlayer;
-var ding = new Audio('/components/Ding.mp3');
-ding.preload = 'auto';
-var timesup = new Audio('/components/times-up.mp3');
-timesup.preload = 'auto';
-var buzz = new Audio('/components/buzzsound.mp3');
-buzz.preload = 'auto';
+var roundTime=20;
+var period=50;
+var step=10*period/roundTime;
+var countdownInterval;
+var boite=4;
+lowLag.init();
+lowLag.load('/components/Ding.mp3');
+lowLag.load('/components/times-up.mp3');
+lowLag.load('/components/buzzsound.mp3');
 
 const socket = io("/faf");
 
@@ -46,6 +52,8 @@ socket.on("FAF player init",(room,p)=>{
             i++;
         });
     }
+    $("#faf-grid").hide();
+    $("#buzzer").show();
 });
 
 socket.on("FAF spectateur init",(room,p)=>{
@@ -61,6 +69,8 @@ socket.on("FAF spectateur init",(room,p)=>{
         });
     }
     $("#spec-message").show();
+    $("#faf-grid").show();
+    $("#buzzer").hide();
 });
 
 socket.on("FAF new player",(room,player)=>{
@@ -79,9 +89,15 @@ socket.on("FAF new player",(room,player)=>{
 socket.on("FAF current player",(room)=>{
     currentRoom=room;
     if (currentPlayer!=null){
-        $(`#joueur-${currentPlayer}`).css('background-color','white');
+        $(`#joueur-${currentPlayer}`).css('background-color','lightgrey');
     }
     currentPlayer=room.players[room.state.main].username;
+    if (room.players[0].username==currentPlayer){
+        moveBoites(true);
+    }
+    else {
+        moveBoites(false);
+    }
     $(`#joueur-${currentPlayer}`).css('background-color','orange');
 });
 
@@ -89,11 +105,49 @@ socket.on("FAF time", (room) => {
     currentRoom=room;
 });
 
+socket.on("FAF start", (room) => {
+    for (var i=1;i<=4;i++){
+        changeCouleurInterieur(i,100);
+        changeCouleurExterieur(i,100);
+    }
+    step=10*period/roundTime;
+    countdownInterval=setInterval(updateCountdown,period);
+    currentRoom=room;
+});
+
+socket.on("FAF switch", async (room)=>{
+    for (let element of currentRoom.state.pointsRule[currentRoom.state.mainInGame][0]) {
+        await moveBoite(element,currentRoom.state.mainInGame==0,room.state.start);
+    }
+    currentRoom=room;
+    $(`#joueur-${room.players[room.state.mainInGame].username}`).css('background-color','orange');
+    $(`#joueur-${room.players[1-room.state.mainInGame].username}`).css('background-color','whitesmoke');
+    countdownInterval=setInterval(updateCountdown,period);
+});
+
+socket.on("FAF main", (room)=>{
+    currentRoom=room;
+    console.log("changement de couleur");
+    $(`#joueur-${room.players[room.state.mainInGame].username}`).css('background-color','orange');
+    $(`#joueur-${room.players[1-room.state.mainInGame].username}`).css('background-color','whitesmoke');
+})
+
 socket.on("FAF free", (r)=>{
     currentRoom=r;
     myplayer.state="free";
     liberer();
 });
+
+socket.on("FAF buzzed", (room)=>{
+    console.log("buzzed")
+    currentRoom=room;
+    lowLag.play('/components/buzzsound.mp3');
+    clearInterval(countdownInterval);
+    $("#buzzer").off('click');
+    $("#buzzer-state").text("Buzzed");
+    $("#buzzer-circle").attr('fill',"red");
+
+})
 
 socket.on("FAF block", (r)=>{
     currentRoom=r;
@@ -103,13 +157,13 @@ socket.on("FAF block", (r)=>{
 
 socket.on("FAF end", (bool,room) => {
     currentRoom=room;
-    $(`#joueur-${currentPlayer}`).css('background-color','white');
+    $(`#joueur-${currentPlayer}`).css('background-color','lightgrey');
     currentPlayer=null;
     if (!bool){
-        timesup.play();
+        lowLag.play('/components/times-up.mp3');
     }
     else {
-        ding.play();
+        lowLag.play('/components/Ding.mp3');
     }
 });
 
@@ -159,7 +213,7 @@ function liberer(){
 }
 
 function buzzerAction(){
-    buzz.play();
+    lowLag.play('/components/buzzsound.mp3');
     buzzed();
 }
 
@@ -180,3 +234,103 @@ function buzzed(){
     $(document).off('keydown');
 }
 
+const moveX=25;
+const pas=100;
+const temps=500;
+async function moveBoite(n,main,start){
+    if (!start){
+        if (!main){
+            for (var i=0;i<=pas;i++){
+                $(`#interieur-${n}`).attr('transform',`${interieurMatrices[n-1]} translate(0,${moveX*i/pas}) `);
+                $(`#exterieur-${n}`).attr('transform',`${exterieurMatrices[n-1]} translate(0,${moveX*i/pas})`);
+                $(`#text-${n}`).attr('transform',`${textMatrices[n-1]} translate(-${moveX*i/(pas*2.5)},0)`);
+                await sleep(temps/pas);
+            }
+        }else {
+            for (var i=0;i<=pas;i++){
+                $(`#interieur-${n}`).attr('transform',`${interieurMatrices[n-1]} translate(0,-${moveX*i/pas}) `);	
+                $(`#exterieur-${n}`).attr('transform',`${exterieurMatrices[n-1]} translate(0,-${moveX*i/pas})`);
+                $(`#text-${n}`).attr('transform',`${textMatrices[n-1]} translate(${moveX*i/(pas*2.5)},0)`);
+                await sleep(temps/pas);
+            }
+        }
+    }
+    else {
+        if (!main){
+            for (var i=0;i<=pas;i++){
+                $(`#interieur-${n}`).attr('transform',`${interieurMatrices[n-1]} translate(0,-${moveX*(pas-i)/pas}) `);
+                $(`#exterieur-${n}`).attr('transform',`${exterieurMatrices[n-1]} translate(0,-${moveX*(pas-i)/pas})`);
+                $(`#text-${n}`).attr('transform',`${textMatrices[n-1]} translate(${moveX*(pas-i)/(pas*2.5)},0)`);
+                
+                await sleep(temps/pas);
+            }
+            await moveBoite(n,main,false)
+        }else {
+            for (var i=0;i<=pas;i++){
+                $(`#interieur-${n}`).attr('transform',`${interieurMatrices[n-1]} translate(0,${moveX*(pas-i)/pas}) `);	
+                $(`#exterieur-${n}`).attr('transform',`${exterieurMatrices[n-1]} translate(0,${moveX*(pas-i)/pas})`);
+                $(`#text-${n}`).attr('transform',`${textMatrices[n-1]} translate(-${moveX*(pas-i)/(pas*2.5)},0)`);
+                
+                await sleep(temps/pas);
+            }
+            await moveBoite(n,main,false)
+        }
+    }
+}
+
+function moveBoites(bool){
+    for (var i=1;i<=4;i++){
+        moveBoite(i,bool^(i%2==0),currentRoom.state.start);
+    }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+
+  function changeCouleurInterieur(n, percent){
+    $(`#grad-interieur-${n}-orange`).attr('offset', `${percent}%`);
+    $(`#grad-interieur-${n}-blue`).attr('offset', `${percent}%`);
+}
+
+function changeCouleurExterieur(n,bool){
+    if (!bool){
+        $(`#exterieur-${n}`).css('fill','rgb(216, 216, 216)');
+    }
+    else
+        $(`#exterieur-${n}`).css('fill','darkorange');
+}
+
+function updateCountdown(){
+    updateColor(boite);
+    if ($(`#grad-interieur-${boite}-orange`).attr('offset')=="0%"&&$(`#grad-interieur-${boite}-blue`).attr('offset')=="0%"){
+        if (boite==1){
+            boite=4;
+            clearInterval(countdownInterval);
+        }
+        else{
+            boite--;
+            changeCouleurExterieur(boite+1,false);
+        }
+    }
+}
+
+function updateColor(n){
+    if ($(`#grad-interieur-${n}-orange`).attr('offset')=="100%"&&$(`#grad-interieur-${n}-blue`).attr('offset')=="100%"){
+        var newPercent = Math.max(0, extractNumberFromPercent($(`#grad-interieur-${n}-orange`).attr('offset')) - step / (n*10));
+        $(`#grad-interieur-${n}-orange`).attr('offset',`${newPercent}%`);
+        return
+    }
+    else if ($(`#grad-interieur-${n}-blue`).attr('offset')!="0%"){
+        var newPercentOrange = Math.max(0, extractNumberFromPercent($(`#grad-interieur-${n}-orange`).attr('offset')) - step / (n*10));
+        var newPercentBlue = Math.max(0, extractNumberFromPercent($(`#grad-interieur-${n}-blue`).attr('offset')) - step / (n*10));
+        $(`#grad-interieur-${n}-orange`).attr('offset',`${newPercentOrange}%`);
+        $(`#grad-interieur-${n}-blue`).attr('offset',`${newPercentBlue}%`);
+        return
+    }
+}
+
+function extractNumberFromPercent(percent){
+    return parseFloat(percent.substring(0,percent.length-1));
+}

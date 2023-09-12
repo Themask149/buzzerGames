@@ -12,12 +12,11 @@ const interieurMatrices =  ["matrix(0.024755, 0.999694, -1.000075, 0.009348, 329
 const textMatrices = ["matrix(2.541135, 0, 0, 1.978724, -341.147898, 151.203053)","matrix(2.541135, 0, 0, 1.978724, -348.952189, 76.573061)","matrix(2.541135, 0, 0, 1.978724, -349.005961, 3.215738)","matrix(2.541135, 0, 0, 1.978724, -351.706218, -73.291895)"];
 const socket = io("/faf");
 
-var ding = new Audio('/components/Ding.mp3');
-ding.preload = 'auto';
-var timesup = new Audio('/components/times-up.mp3');
-timesup.preload = 'auto';
-var buzz = new Audio('/components/buzzsound.mp3');
-buzz.preload = 'auto';
+lowLag.init();
+lowLag.load('/components/Ding.mp3');
+lowLag.load('/components/times-up.mp3');
+lowLag.load('/components/buzzsound.mp3');
+
 
 var currentRoom;
 var currentPlayer;
@@ -26,7 +25,6 @@ var period=50;
 var step=10*period/roundTime;
 var countdownInterval;
 var boite=4;
-
 
 
 $("#form-pseudo").on('submit', function (e){
@@ -64,15 +62,10 @@ $('#Start').on('click',(e)=>{
         alert("Aucun joueur n'a encore la main");
         return;
     }
-    for (var i=1;i<=4;i++){
-        changeCouleurInterieur(i,100);
-        changeCouleurExterieur(i,100);
-    }
     $('#Start').hide("slow");
     $('#settings-button').hide("slow");
-    step=10*period/roundTime;
     socket.emit("FAF start");
-    countdownInterval=setInterval(updateCountdown,period);
+    
 
 });
 
@@ -96,12 +89,12 @@ $(function(){
 
 $('#Vrai').on('click',(e)=>{
     vrai();
-    $('#validate-answer').hide();
+    
 });
 
 $('#Faux').on('click',(e)=>{
     faux();
-    $('#validate-answer').hide();
+    
 });
 
 function vrai(){
@@ -109,12 +102,14 @@ function vrai(){
         socket.emit("FAF answer",true);
         
     }
+    $('#validate-answer').hide();
 }
 
 function faux(){
     if (currentRoom&&currentRoom.state.start&&currentRoom.state.buzzed){
         socket.emit("FAF answer",false);
     }
+    $('#validate-answer').hide();
 }
 
 socket.on('FAF host launch',(player,room)=>{
@@ -148,7 +143,7 @@ socket.on("FAF new player",(room,player)=>{
 socket.on("FAF current player",async (room)=>{
     currentRoom=room;
     if (currentPlayer!=null){
-        $(`#joueur-${currentPlayer}`).css('background-color','white');
+        $(`#joueur-${currentPlayer}`).css('background-color','whitesmoke');
     }
     currentPlayer=room.players[room.state.main].username;
     if (room.players[0].username==currentPlayer){
@@ -192,15 +187,20 @@ socket.on("FAF time", (room) => {
 
 
 socket.on("FAF start", (room) => {
+    for (var i=1;i<=4;i++){
+        changeCouleurInterieur(i,100);
+        changeCouleurExterieur(i,100);
+    }
+    step=10*period/roundTime;
+    countdownInterval=setInterval(updateCountdown,period);
     currentRoom=room;
-
 });
 
 socket.on("FAF buzzed", (room)=>{
     console.log("buzzed")
     currentRoom=room;
     
-    buzz.play();
+    lowLag.play('/components/buzzsound.mp3');
     clearInterval(countdownInterval);
     $('#validate-answer').show();
 
@@ -212,22 +212,33 @@ socket.on("FAF switch", async (room)=>{
     }
     currentRoom=room;
     $('#validate-answer').hide();
+
+    $(`#joueur-${room.players[room.state.mainInGame].username}`).css('background-color','orange');
+    $(`#joueur-${room.players[1-room.state.mainInGame].username}`).css('background-color','whitesmoke');
     countdownInterval=setInterval(updateCountdown,period);
     socket.emit("FAF restart");
 });
 
+socket.on("FAF main", (room)=>{
+    currentRoom=room;
+    console.log("changement de couleur");
+    $(`#joueur-${room.players[room.state.mainInGame].username}`).css('background-color','orange');
+    $(`#joueur-${room.players[1-room.state.mainInGame].username}`).css('background-color','whitesmoke');
+})
+
 socket.on("FAF end", (bool,room) => {
     currentRoom=room;
-    $(`#joueur-${currentPlayer}`).css('background-color','white');
+    $(`#joueur-${room.players[room.state.mainInGame].username}`).css('background-color','whitesmoke');
+    $(`#joueur-${room.players[1-room.state.mainInGame].username}`).css('background-color','whitesmoke');
     currentPlayer=null;
     $('#Start').show("slow");
     $('#settings-button').show("slow");
     boite=4;
     if (!bool){
-        timesup.play();
+        lowLag.play('/components/times-up.mp3');
     }
     else {
-        ding.play();
+        lowLag.play('/components/Ding.mp3');
     }
 });
     
@@ -255,16 +266,19 @@ function addPlayer(player,i){
     $(`#joueur${i}-name`).html(`<h3 id="joueur-${player.username}">${player.username}</h3> <button type="button" id="${player.socketId}-kick" class="btn btn-secondary kick">kick</button>`);
     $(`#joueur-${player.username}`).data("place",i);
     $(`#joueur${i}-score-div`).html(`<button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
+    $(document).off('click', `#${player.username}-score`);
     $(document).on('click',`#${player.username}-score`,(e)=>{
         e.preventDefault();
         console.log('score '+player.username);
         $('#pseudo-modal').text(`${player.username}`);
         $('#modal-score-label').text("Donnez le nombre de points à ajouter ou à enlever (mettre un - ) :");
         $('#btn-validate').attr("data-username", `${player.username}`);
+        $('#btn-validate').off('click');
         $('#btn-validate').on('click',(e)=>{
             validerPoints(e.target);
         });
     });
+    $(document).off('click', `#${player.username}-kick`);
     $(document).on('click',`#${player.socketId}-kick`,(e)=>{
         if (!currentRoom.state.start){
             e.preventDefault();
