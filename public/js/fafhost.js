@@ -74,6 +74,16 @@ $('#faf-time-button').on('click',(e)=>{
     socket.emit("FAF time",roundTime);
 });
 
+$('#faf-whitelist-button').on('click',(e)=>{
+    if ($("#faf-whitelistCheckbox").is(":checked")){
+        socket.emit("FAF whitelist",true,$('#faf-whitelist').val());
+    }
+    else{
+        socket.emit("FAF whitelist",false,"");
+    }
+    
+});
+
 $(function(){
     $(document).keydown(function(e){
         if (currentRoom.state.buzzed){
@@ -183,6 +193,7 @@ socket.on("FAF remove spectateur",(room,player)=>{
 
 socket.on("FAF time", (room) => {
     currentRoom=room;
+    modalUpdate("Le temps a été changé");
 });
 
 
@@ -259,6 +270,20 @@ socket.on("FAF error",(err)=>{
 });
 socket.on('error', (error) => {
     console.error('Socket.IO error:', error);
+});
+
+socket.on("kick-success",(room)=>{
+    currentRoom=room;
+    modalUpdate("Le joueur a bien été kické");
+});
+
+socket.on("FAF whitelist",(room)=>{
+    currentRoom=room;
+    modalUpdate("La whitelist a bien été modifiée");
+});
+
+socket.on("FAF alert",(message)=>{
+    alert(message);
 });
 
 function addPlayer(player,i){
@@ -401,4 +426,10 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+function modalUpdate(message){
+    $("#success-alert").html(`<strong>${message} </strong>`);
+    $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
+        $("#success-alert").slideUp(500);
+    });
+}
 

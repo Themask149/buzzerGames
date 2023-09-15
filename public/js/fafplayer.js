@@ -102,6 +102,7 @@ socket.on("FAF current player",(room)=>{
 });
 
 socket.on("FAF time", (room) => {
+    roundTime=room.options.roundTime;
     currentRoom=room;
 });
 

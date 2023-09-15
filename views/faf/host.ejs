@@ -45,6 +45,17 @@
                     <div class="col-4"></div>
                     
                 </div>
+                <div class="row mx-auto my-2">
+                        <div class="col-1"><input class="form-check-input" type="checkbox" name="whitelist" id="faf-whitelistCheckbox"></div>
+                        <div class="col-4"><label class="form-check-label " for="faf-whitelistCheckbox">
+                            Whitelist (Séparer les noms des joueurs par des points virgules)
+                        </label>
+                        </div> 
+                        <div class="col-4"><input type="" name="" id="faf-whitelist" class="form-control col-4" minlength="0"
+                            maxlength="20" placeholder="Whitelist"></div>
+                        <div class="col-3"><button type="button" class="btn btn-primary" id="faf-whitelist-button">Valider</button></div>
+                        
+                </div>
             </div>
 
             <!-- App -->
@@ -145,7 +156,9 @@
             </div>
 
            
+            <div class="alert alert-success mt-5" style="display: none;" id="success-alert">
 
+            </div>
 
              <!-- Validate points -->
              <div class="modal fade" id="modalGivePoints" data-bs-backdrop="static" data-bs-keyboard="false"

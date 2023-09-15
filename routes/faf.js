@@ -22,7 +22,7 @@ export default function (io) {
     router.post('/', (req, res) => {
         const infos = req.body;
         let roomID = 0;
-        if (infos.action == "host") {
+        if (infos.action == "host") {    
             roomID = Math.floor(Math.random() * 899999) + 100000;
             listeCodes.push(parseInt(roomID));
             console.log("[Hosting] room " + roomID);
@@ -70,7 +70,7 @@ export default function (io) {
                 player.points = 0;
                 player.player = true;
                 p = player;
-                r = { players: [], spectateurs: [], id: player.roomId, state: { start: false, pointsRule: [[[4],[2]],[[3],[1]]], main: null, mainInGame: null,buzzed:false},options:{roundTime:20} };
+                r = { players: [], spectateurs: [], id: player.roomId, state: { start: false, pointsRule: [[[4],[2]],[[3],[1]]], main: null, mainInGame: null,buzzed:false},options:{roundTime:20,whitelistEnabled:false,whitelist:[]} };
                 rooms.push(r);
                 socket.join(p.roomId);
                 console.log(`[Hosting FAF] ${p.username} host la room ` + p.roomId);
@@ -81,40 +81,59 @@ export default function (io) {
             
 
         socket.on('FAFplayerData', (player) => {
+            console.log("Receiving playerData in FAF: "+JSON.stringify(player));
             if (!/^[A-Za-z0-9]*[A-Za-z0-9\s]+[A-Za-z0-9]*$/.test(player.username)) {
                 fafNamespace.in(player.socketId).emit("FAF error", "Choississez un pseudo qu'avec des caractères alphanumériques");
                 
             }
+            else if (!player.roomId) {
+                fafNamespace.in(player.socketId).emit("FAF error", "Vous n'avez pas de code de room");
+            }
+            else if (!listeCodes.includes(parseInt(player.roomId))) {
+                fafNamespace.in(player.socketId).emit("FAF error", "Ce code n'existe pas");
+            }
             else {
-                console.log(`[Joining FAF] ${player.username} join la room ` + player.roomId);
-                player.username = xss(player.username);
-                player.host = false;
-                player.roomId = parseInt(player.roomId);
-                player.points = 0;
-                player.state="blocked";
-                p = player;
-                r = rooms.find((room) => { return p.roomId === room.id; });
-                if (!r) {
-                    socket.disconnect();
+                r = rooms.find((room) => { return player.roomId === room.id; })
+                if (!r){
+                    fafNamespace.in(player.socketId).emit("FAF error", "Cette room n'existe pas");
+                }
+                else if ( r.players.find((player) => { return player.socketId === socket.id; })) {
+                    fafNamespace.in(player.socketId).emit("FAF error", "Player déjà présent dans la room");
+                }
+                else if (r.options.whitelistEnabled && !r.options.whitelist.includes(player.username)) {
+                    fafNamespace.in(player.socketId).emit("FAF error", "Vous n'êtes pas dans la whitelist");
                 }
                 else {
-                    if (r.players.length>=2){
-                        player.player = false;
-                        r.spectateurs.push(p);
-                        socket.join(p.roomId);
-                        fafNamespace.to(p.roomId).emit('FAF new spectateur', r,p);
-                        fafNamespace.to(socket.id).emit("FAF spectateur init", r, p);
-                }
-                    else{
-                        player.player = true;
-                        r.players.push(player);
-                        fafNamespace.to(p.roomId).emit("FAF new player", r, p);
-                        socket.join(p.roomId);
-                        fafNamespace.to(socket.id).emit("FAF player init", r, p);
+                    console.log(`[Joining FAF] ${player.username} join la room ` + player.roomId);
+                    player.username = xss(player.username);
+                    player.host = false;
+                    player.roomId = parseInt(player.roomId);
+                    player.points = 0;
+                    player.state="blocked";
+                    p = player;
+                    r = rooms.find((room) => { return p.roomId === room.id; });
+                    if (!r) {
+                        socket.disconnect();
+                    }
+                    else {
+                        if (r.players.length>=2){
+                            player.player = false;
+                            r.spectateurs.push(p);
+                            socket.join(p.roomId);
+                            fafNamespace.to(p.roomId).emit('FAF new spectateur', r,p);
+                            fafNamespace.to(socket.id).emit("FAF spectateur init", r, p);
+                    }
+                        else{
+                            player.player = true;
+                            r.players.push(player);
+                            fafNamespace.to(p.roomId).emit("FAF new player", r, p);
+                            socket.join(p.roomId);
+                            fafNamespace.to(socket.id).emit("FAF player init", r, p);
+                        }
                     }
                 }
-            }
-            console.log("Room :"+JSON.stringify(r));
+                console.log("Room :"+JSON.stringify(r));
+        }
         });
 
         socket.on("FAF time", (roundTime) => {
@@ -136,6 +155,22 @@ export default function (io) {
                 else{
                     r.state.pointsRule=[[[3],[1]],[[4],[2]]];
                 }
+            }
+        });
+
+        socket.on("FAF whitelist",(bool,whitelist)=>{
+            if (p && p.host) {
+                console.log(`[FAF ${r.id}] whitelist : `+bool);
+                r.options.whitelistEnabled=bool;
+                if (bool){
+                    if (/^[A-Za-z0-9\s;]+$/.test(whitelist)){
+                        r.options.whitelist=whitelist.split(";");
+                    }
+                    else{
+                        socket.emit("FAF alert","La whitelist n'est pas valide");
+                    }
+                }
+                fafNamespace.to(p.roomId).emit("FAF whitelist", r);
             }
         });
 
@@ -194,41 +229,44 @@ export default function (io) {
         });
 
         socket.on("FAF restart",()=>{
-            r.players[r.state.mainInGame].state="free";
-            r.players[1-r.state.mainInGame].state="blocked";
-            fafNamespace.to(r.players[r.state.mainInGame].socketId).emit("FAF free",r);
-            fafNamespace.to(r.players[1-r.state.mainInGame].socketId).emit("FAF block",r);
+            if (p && p.host&&r.state.start) {
+                r.players[r.state.mainInGame].state="free";
+                r.players[1-r.state.mainInGame].state="blocked";
+                fafNamespace.to(r.players[r.state.mainInGame].socketId).emit("FAF free",r);
+                fafNamespace.to(r.players[1-r.state.mainInGame].socketId).emit("FAF block",r);
+            }
         });
 
         socket.on("FAF main",(boite)=>{
-            console.log("changement de main",JSON.stringify(r.state.pointsRule));
-            r.state.pointsRule[r.state.mainInGame][0] = r.state.pointsRule[r.state.mainInGame][0].filter(item => item !== boite+1);
-            if (r.state.pointsRule[r.state.mainInGame][0].length==0){
-                r.state.pointsRule[r.state.mainInGame].shift();
-                if (r.state.pointsRule[1-r.state.mainInGame][0].includes(boite)){
-                    r.state.mainInGame=1-r.state.mainInGame;
-                    r.players[r.state.mainInGame].state="free";
-                    r.players[1-r.state.mainInGame].state="blocked";
-                    fafNamespace.to(r.players[r.state.mainInGame].socketId).emit("FAF free",r);
-                    fafNamespace.to(r.players[1-r.state.mainInGame].socketId).emit("FAF block",r);
-                    fafNamespace.to(p.roomId).emit("FAF main", r);
+            if (p && p.host&&r.state.start) {
+                console.log("changement de main",JSON.stringify(r.state.pointsRule));
+                r.state.pointsRule[r.state.mainInGame][0] = r.state.pointsRule[r.state.mainInGame][0].filter(item => item !== boite+1);
+                if (r.state.pointsRule[r.state.mainInGame][0].length==0){
+                    r.state.pointsRule[r.state.mainInGame].shift();
+                    if (r.state.pointsRule[1-r.state.mainInGame][0].includes(boite)){
+                        r.state.mainInGame=1-r.state.mainInGame;
+                        r.players[r.state.mainInGame].state="free";
+                        r.players[1-r.state.mainInGame].state="blocked";
+                        fafNamespace.to(r.players[r.state.mainInGame].socketId).emit("FAF free",r);
+                        fafNamespace.to(r.players[1-r.state.mainInGame].socketId).emit("FAF block",r);
+                        fafNamespace.to(p.roomId).emit("FAF main", r);
+                    }
+                    else{
+                        socket.emit("FAF error","Un problème imprévu a eu lieu lors du contrôle des boites");
+                        console.log("Un problème imprévu a eu lieu lors du contrôle des boites");
+                        console.log(JSON.stringify(r));
+                    }
+                }
+                else if ( r.state.pointsRule[r.state.mainInGame][0].includes(boite) ){
+
                 }
                 else{
                     socket.emit("FAF error","Un problème imprévu a eu lieu lors du contrôle des boites");
                     console.log("Un problème imprévu a eu lieu lors du contrôle des boites");
                     console.log(JSON.stringify(r));
                 }
-            }
-            else if ( r.state.pointsRule[r.state.mainInGame][0].includes(boite) ){
-
-            }
-            else{
-                socket.emit("FAF error","Un problème imprévu a eu lieu lors du contrôle des boites");
-                console.log("Un problème imprévu a eu lieu lors du contrôle des boites");
-                console.log(JSON.stringify(r));
-            }
-            console.log("changement de main",JSON.stringify(r.state.pointsRule));
-
+                console.log("changement de main",JSON.stringify(r.state.pointsRule));
+        }
         })
 
 
@@ -257,16 +295,18 @@ export default function (io) {
         });     
 
         socket.on("FAF kick", (socketId) => {
-            var bool = false;
-            if (p.host && !r.state.start) {
-                console.log(`[FAF ${r.id}] kick ${socketId}`);
-                bool = true;
-                fafNamespace.in(socketId).emit("error", "Vous avez été kické de la partie")
-                fafNamespace.in(socketId).disconnectSockets();
-            }
-            if (bool) {
-                fafNamespace.to(socket.id).emit("kick-success");
-            }
+            if (p && p.host&&!r.state.start) {
+                var bool = false;
+                if (p.host && !r.state.start) {
+                    console.log(`[FAF ${r.id}] kick ${socketId}`);
+                    bool = true;
+                    fafNamespace.in(socketId).emit("error", "Vous avez été kické de la partie")
+                    fafNamespace.in(socketId).disconnectSockets();
+                }
+                if (bool) {
+                    fafNamespace.to(socket.id).emit("kick-success");
+                }
+        }
         });
 
         socket.on("disconnect", () => {
