@@ -24,6 +24,7 @@ const io = new Server(server);
 import routeBuzzerFunction from './routes/buzzer.js';
 import route4alsFunction from './routes/4als.js';
 import routeFafFunction from './routes/faf.js';
+import routeConquiztadorFunction from './routes/conquiztador.js';
 // import routeCenturieFunction from './routes/centurie.js';
 import routeLoginAPIFunction from './API/loginAPI.js';
 import routeQuizzAPIFunction from './API/quizzAPI.js';
@@ -32,6 +33,7 @@ import routeQuizzAPIFunction from './API/quizzAPI.js';
 const routeBuzzer=routeBuzzerFunction(io);
 const route4als=route4alsFunction(io);
 const routeFaf=routeFafFunction(io);
+const routeConquiztador=routeConquiztadorFunction(io);
 // const routeCenturie=routeCenturieFunction(io);
 const routeLoginAPI=routeLoginAPIFunction(io);
 const routeQuizzAPI=routeQuizzAPIFunction(io);
@@ -54,6 +56,7 @@ app.use(express.static('public'));
 app.use('/apps/buzzer',routeBuzzer);
 app.use('/apps/4als',route4als);
 app.use('/apps/faf',routeFaf);
+app.use('/apps/conquiztador',routeConquiztador);
 // app.use('/centurie',routeCenturie);
 // app.use('/apps/qpuc',routeQPUC);
 app.use('/api',routeLoginAPI);
@@ -72,7 +75,7 @@ app.get('/home', (req, res) => {
     });
 });
 
-app.get('/login',(req, res) => {
+app.get('/apps/login',(req, res) => {
     isConnected(req, res, (connected) => {
         if (connected) {
             res.redirect('home');
@@ -87,18 +90,8 @@ app.get('/login',(req, res) => {
 app.get('/', (req, res) => {
     res.redirect('home');
 });
-app.get('/login',(req, res) => {
-    isConnected(req, res, (connected) => {
-        if (connected) {
-            res.redirect('home');
-        }
-        else {
-            res.render('login', { connected: connected,admin:false });
-        }
-    });
-    
-});
-app.get('/register', (req, res) => {
+
+app.get('/apps/register', (req, res) => {
     isConnected(req, res, (connected,role) => {
         if (connected) {
             res.redirect('home');
@@ -109,19 +102,18 @@ app.get('/register', (req, res) => {
     });
 });
 
-app.get('/logout', (req, res) => {
+app.get('/apps/logout', (req, res) => {
     isConnected(req, res, (connected,role) => {
         if (connected) {
             res.cookie('token', '', { maxAge: 1 });        
         }
-        res.redirect('home');
+        res.redirect('../home');
     });
 });
 
 app.get('/profil', (req, res) => {
     getUser(req, res, (user) => {
         if (user) {
-            console.log(user);
             res.render('profil', { user: user, connected: true,admin: (user.role=='admin') });
         }
         else {

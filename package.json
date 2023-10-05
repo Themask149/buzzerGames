@@ -26,6 +26,7 @@
     "deep-email-validator": "^0.1.21",
     "dotenv": "^16.0.3",
     "ejs": "^3.1.8",
+    "email-validator": "^2.0.4",
     "esm": "^3.2.25",
     "express": "^4.18.1",
     "express-session": "^1.17.3",

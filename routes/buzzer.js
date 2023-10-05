@@ -11,18 +11,15 @@ export default function (io) {
     const router = express.Router();
     router.use(cookieParser());
 
-    router.get('/', (req, res) => {
+    router.get('/',adminAuth, (req, res) => {
         res.render('buzzer/buzzerHome');
     });
 
-    router.get('/debug', (req, res) => {
-        res.render('buzzer/host', { code: 10000, players: [{ username: "test" }, { username: "test2" }, { username: "test3" }] });
-    });
 
     var rooms = [{ players: [], id: 123456789,}];
     var listeCodes = [];
 
-    router.post('/', (req, res) => {
+    router.post('/',adminAuth, (req, res) => {
         const infos = req.body;
         let roomID = 0;
         if (infos.action == "host") {

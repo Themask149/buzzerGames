@@ -13,13 +13,13 @@ export default function (io) {
     const router = express.Router();
     router.use(cookieParser());
 
-    router.get('/', (req, res) => {
+    router.get('/', adminAuth, (req, res) => {
         res.render('faf/fafHome');
     });
     var rooms = [{ players: [], id: 123456789, spectateurs:[], state: { start: false,main:null},options:{roundTime:20}}];
     var listeCodes = [];
 
-    router.post('/', (req, res) => {
+    router.post('/', adminAuth, (req, res) => {
         const infos = req.body;
         let roomID = 0;
         if (infos.action == "host") {    

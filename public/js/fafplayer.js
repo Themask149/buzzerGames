@@ -172,6 +172,7 @@ socket.on("FAF end", (bool,room) => {
 
 
 socket.on("FAF remove player",(room)=>{
+    currentRoom=room;
     if (room.players.length==0 || room.players.length==1){
         i=1;
         room.players.forEach((player)=>{

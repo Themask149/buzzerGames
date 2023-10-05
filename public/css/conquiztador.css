@@ -1,0 +1,10 @@
+.block {
+    border: 1px solid #000;
+    padding: 20px;
+    text-align: center;
+    background-color: #f0f0f0;
+  }
+  
+.block:hover {
+    background-color: #e0e0e0;
+  }
