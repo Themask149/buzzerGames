@@ -12,6 +12,14 @@ var myplayer = {
 const socket = io("/conquiztador");
 
 var currentRoom;
+var currentPlayer;
+var tempsMovement=1;
+var nbPas=50;
+
+lowLag.init();
+lowLag.load('/components/Ding.mp3');
+lowLag.load('/components/times-up.mp3');
+lowLag.load('/components/buzzsound.mp3');
 
 
 $("#form-pseudo").on('submit', function (e){
@@ -35,10 +43,13 @@ socket.on("Conquiz player init",(room,p)=>{
     var i = 1;
     if (1<=room.players.length<=2){
         room.players.forEach((player)=>{
-            $(`#joueur${i}-name`).html(`<h3 id="joueur-${player.username}">${player.username}</h3>`);
-            $(`#joueur${i}-score-div`).html(`<button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
+            $(`.joueur${i}-name`).html(`<h3 class="joueur-${player.username}">${player.username}</h3>`);
+            $(`.joueur${i}-score-div`).html(`<button type="button" class="btn btn-success score-point edit ${player.username}-score" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
             i++;
         });
+    }
+    for (let i = 1; i <= 3; i++) {
+        $(`#theme${i}`).text(room.state.themesList[i-1]);
     }
 });
 
@@ -49,10 +60,13 @@ socket.on("Conquiz spectateur init",(room,p)=>{
     var i = 1;
     if (1<=room.players.length<=2){
         room.players.forEach((player)=>{
-            $(`#joueur${i}-name`).html(`<h3 id="joueur-${player.username}">${player.username}</h3>`);
-            $(`#joueur${i}-score-div`).html(`<button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
+            $(`.joueur${i}-name`).html(`<h3 class="joueur-${player.username}">${player.username}</h3>`);
+            $(`.joueur${i}-score-div`).html(`<button type="button" class="btn btn-success score-point edit ${player.username}-score" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
             i++;
         });
+    }
+    for (let i = 1; i <= 3; i++) {
+        $(`#theme${i}`).text(room.state.themesList[i-1]);
     }
     $("#spec-message").show();
 });
@@ -63,8 +77,8 @@ socket.on("Conquiz new player",(room,player)=>{
     currentRoom=room;
     if (1<=room.players.length<=2){
         room.players.forEach((player)=>{
-            $(`#joueur${i}-name`).html(`<h3 id="joueur-${player.username}">${player.username}</h3>`);
-            $(`#joueur${i}-score-div`).html(`<button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
+            $(`.joueur${i}-name`).html(`<h3 class="joueur-${player.username}">${player.username}</h3>`);
+            $(`.joueur${i}-score-div`).html(`<button type="button" class="btn btn-success score-point edit ${player.username}-score" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
             i++;
         });
     }
@@ -76,23 +90,175 @@ socket.on("Conquiz remove player",(room)=>{
     if (room.players.length==0 || room.players.length==1){
         i=1;
         room.players.forEach((player)=>{
-            $(`#joueur${i}-name`).text(player.username);
-            $(`#joueur${i}-score-div`).html(`<button type="button" id="${player.username}-score" class="btn btn-success score-point edit" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
+            $(`.joueur${i}-name`).text(player.username);
+            $(`.joueur${i}-score-div`).html(`<button type="button" class="btn btn-success score-point edit ${player.username}-score" data-bs-toggle="modal" data-bs-target="#modalGivePoints">0</button>`);
             i++;
         });
         while (i<=2){
-            $(`#joueur${i}-name`).text(`Joueur ${i}`);
-            $(`#joueur${i}-score-div`).html("");
+            $(`.joueur${i}-name`).text(`Joueur ${i}`);
+            $(`.joueur${i}-score-div`).html("");
             i++;
         }
     }
 })
 
-socket.on("Conquiz question", (question) => {
+socket.on("Conquiz current player",async (room)=>{
+    currentRoom=room;
+    if (currentPlayer!=null){
+        $(`.joueur-${currentPlayer}`).css('background-color','whitesmoke');
+    }
+    currentPlayer=room.players[room.state.main].username;
+    $(`.joueur-${currentPlayer}`).css('background-color','orange');
+});
+
+socket.on("Conquiz update score",(player,room)=>{
+    currentRoom=room;
+    $(`.${player.username}-score`).text(player.points);
+    if (room.state.manche==2){
+        moveBarre(room.players[0].points,room.players[1].points)
+    }
+});
+
+socket.on("Conquiz question", (question,id) => {
     $("#question-div").text(question);
+    $(`#${id}`).removeClass("block");
+    $(`#${id}`).addClass("used-block");
     $("#modalQuestion").modal("show");
 })
 
 socket.on("Conquiz remove question", () => {
+    console.log("remove question");
     $("#modalQuestion").modal("hide");
 })
+
+
+socket.on("Conquiz start manche2", (room) => {
+    console.log("start manche2");
+    currentRoom=room;
+    $('#app-div-manche1').hide("slow");
+    $('#app-div-manche2').show("slow");
+});
+
+socket.on("Conquiz start manche1", (room) => {
+    console.log("start manche1");
+    currentRoom=room;
+    $('#app-div-manche2').hide("slow");
+    $('#app-div-manche1').show("slow");
+});
+
+socket.on("Conquiz remove current player", (room) => {
+    currentRoom=room;
+    room.players.forEach((player)=>{
+        $(`.joueur-${player.username}`).css('background-color','whitesmoke');
+    });
+    currentPlayer=null;
+});
+
+
+socket.on("disconnect",()=>{
+    alert("L'hôte s'est déconnecté");
+    document.location.href="/";
+});
+
+socket.on("Conquiz error",(err)=>{
+    alert(err);
+});
+
+socket.on("Conquiz libere", (r)=>{
+    currentRoom=r;
+    myplayer.state="free";
+    currentRoom.players.forEach((player)=>{
+        $(`.joueur-${player.username}`).css('background-color','whitesmoke');
+    });
+    liberer();
+});
+
+socket.on("Conquiz buzzed", (room,rang)=>{
+    $(`.joueur${rang}-card`).css('background-color','orange');
+    console.log("buzzed")
+    currentRoom=room;
+    myplayer.state="buzzed";
+    $("#buzzer").off('click');
+    $("#buzzer-state").text("Buzzed");
+    $("#buzzer-circle").attr('fill',"red");
+    $(document).off('keydown');
+    lowLag.play('/components/buzzsound.mp3');
+})
+
+socket.on("Conquiz block", (r)=>{
+    currentRoom=r;
+    myplayer.state="blocked";
+    block();
+
+});
+
+socket.on("Conquiz update currentPoints",(currentPoints)=>{
+    $("#success-alert").html(`<strong>Nous passons à ${currentPoints} </strong>`);
+    $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
+        $("#success-alert").slideUp(500);
+    });
+})
+
+
+function buzzerAction(){
+    lowLag.play('/components/buzzsound.mp3');
+    buzzed();
+}
+
+function block(){
+    console.log("block");
+    $("#buzzer-state").text("Bloqué");
+    $("#buzzer-circle").attr('fill',"yellow");
+    $("#buzzer").off('click');
+    $(document).off('keydown');
+    for (let i =1;i<=2;i++){
+        $(`.joueur${i}-card`).css('background-color','');
+    }
+}
+
+function buzzed(){
+    socket.emit("Conquiz buzzed",myplayer.username)
+    myplayer.state="buzzed";
+    $("#buzzer").off('click');
+    $("#buzzer-state").text("Buzzed");
+    $("#buzzer-circle").attr('fill',"red");
+    $(document).off('keydown');
+}
+
+function liberer(){
+    console.log("libere");
+    $("#buzzer-state").text("BUZZ");
+    $("#buzzer-circle").attr('fill',"green");
+    $("#buzzer").on('click',buzzerAction);
+    for (let i =1;i<=2;i++){
+        $(`.joueur${i}-card`).css('background-color','');
+    }
+    $(document).keydown(function(e){
+            if (e.code === "Space"){
+                buzzerAction();
+            }
+        });
+}
+
+function moveBarre(pointsA,pointsB){
+    var unPoint=100/18;
+    var baseA = extractNumberFromPercent($("#grad-interieur-white-1").attr("offset"));
+    var ecartA = pointsA*unPoint-baseA;
+    var baseB = extractNumberFromPercent($("#grad-interieur-white-2").attr("offset"));
+    var ecartB = pointsB*unPoint-baseB;
+    for (let i =0;i<nbPas;i++){
+        $("#grad-interieur-white-1").attr("offset",`${baseA-ecartA*i/nbPas}%`);
+        var offsetB=baseB-ecartB*i/nbPas;
+        $("#grad-interieur-white-2").attr("offset",`${offsetB}%`);
+        $("#grad-interieur-white-2").attr("offset",`${offsetB}%`);
+        sleep(tempsMovement*1000/nbPas);
+    }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function extractNumberFromPercent(percent){
+    return parseFloat(percent.substring(0,percent.length-1));
+}

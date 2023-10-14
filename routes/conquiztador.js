@@ -57,7 +57,7 @@ export default function (io) {
         var r;
         console.log(`[Connection] ${socket.id}`);
 
-        socket.once('Conquiz playerDataHost', (player) => {
+        socket.once('Conquiz playerDataHost', (player,themesList) => {
             console.log("Receiving playerDataHost in Conquiz");
             if (!/^[A-Za-z0-9]*[A-Za-z0-9\s]+[A-Za-z0-9]*$/.test(player.username)) {
                 socket.disconnect();
@@ -69,7 +69,7 @@ export default function (io) {
                 player.points = 0;
                 player.player = true;
                 p = player;
-                r = { players: [], spectateurs: [], id: player.roomId, state: { manche: 1, buzzed: false, main:null},options:{roundTime:10,whitelistEnabled:false,whitelist:[]} };
+                r = { players: [], spectateurs: [], id: player.roomId, state: { manche: 1, buzzed: false, main:null,themesList:themesList},options:{roundTime:10,whitelistEnabled:false,whitelist:[]} };
                 rooms.push(r);
                 socket.join(p.roomId);
                 console.log(`[Hosting Conquiz] ${p.username} host la room ` + p.roomId);
@@ -170,25 +170,82 @@ export default function (io) {
             }
         });
 
-        socket.on("Conquiz question", (question) => {
+        socket.on("Conquiz question", (question,id) => {
             if (p && p.host) {
                 console.log(`[Conquiz ${r.id}] ${question}`);
-                ConquiztadorNS.to(p.roomId).emit("Conquiz question", question);
+                ConquiztadorNS.to(p.roomId).emit("Conquiz question", question,id);
             }
         });
 
-        socket.on("Conquiz answer",(bool,point)=>{
-            if (p && p.host) {
+        socket.on("Conquiz answer",(bool,points)=>{
+            if (p && p.host && points) {
                 console.log(`[Conquiz ${r.id}] answer is ${bool} for ${r.players[r.state.main].username}`);
                 ConquiztadorNS.to(p.roomId).emit("Conquiz remove question");
                 if (bool){
-                    r.players[r.state.main].points+=point;
-                    ConquiztadorNS.to(p.roomId).emit("Conquiz update points",r);
+                    updateScore(points,r.state.main);
                 }
-                r.state.main=1-rang;
+                r.state.main=1-r.state.main;
                 ConquiztadorNS.to(p.roomId).emit("Conquiz current player", r);
 
             }
+        });
+
+        socket.on("Conquiz update score",(rang,points)=>{
+            if (p && p.host && points.match(/^-?[0-9]+$/)!=null) {
+                updateScore(points,rang);   
+            }
+        });
+
+        socket.on("Conquiz start manche2",()=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] start manche2`);
+                r.state.manche=2;
+                ConquiztadorNS.to(p.roomId).emit("Conquiz start manche2",r);
+            }});
+        socket.on("Conquiz start manche1",()=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] start manche1`);
+                r.state.manche=1;
+                ConquiztadorNS.to(p.roomId).emit("Conquiz start manche1",r);
+            }});
+        
+        socket.on("Conquiz libere",()=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] libere`);
+                r.state.buzzed=false;
+                ConquiztadorNS.to(p.roomId).emit("Conquiz libere",r);
+            }});
+
+        socket.on("Conquiz buzzed",(username)=>{
+            if (!r.state.buzzed){
+                r.state.buzzed=true;
+                console.log(`[Conquiz ${r.id}] buzzed`);
+                var rang;
+                if (r.players[0].username==username){
+                    rang=1
+                }
+                else{
+                    rang=2
+                }
+                ConquiztadorNS.to(p.roomId).emit("Conquiz buzzed",r,rang);
+            }});
+
+        socket.on("Conquiz block",()=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] block`);
+                ConquiztadorNS.to(p.roomId).emit("Conquiz block",r);
+            }}
+        );
+        
+        socket.on("Conquiz remove current player",()=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] remove current player`);
+                r.state.main=null;
+                ConquiztadorNS.to(p.roomId).emit("Conquiz remove current player", r);
+            }});
+
+        socket.on("Conquiz update currentPoints",(currentPoints)=>{
+            ConquiztadorNS.to(p.roomId).emit("Conquiz update currentPoints",currentPoints);
         })
 
         socket.on("disconnect", () => {
@@ -220,6 +277,30 @@ export default function (io) {
                 listeCodes = listeCodes.filter((code) => code !== p.roomId);
             }
         });
+        
+
+        // mec faut réfléchir des fois corrige moi ça 
+        function updateScore(point,rang){
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] update score`);
+                r.players[rang].points+=parseInt(point);
+                if (r.players[rang].points+r.players[1-rang].points>18){
+                    r.players[1-rang].points = 18-r.players[rang].points;
+                }
+                if (r.players[rang].points<0){
+                    r.players[rang].points=0;
+                }
+                if (r.players[1-rang].points<0){
+                    r.players[1-rang].points=0;
+                }
+                if (r.players[rang].points>18){
+                    r.players[rang].points=18;
+                }
+                console.log(`[Conquiz ${r.id}] ${r.players[rang].username} a maintenant ${r.players[rang].points} points`);
+                ConquiztadorNS.to(p.roomId).emit("Conquiz update score",r.players[rang],r);
+                ConquiztadorNS.to(p.roomId).emit("Conquiz update score",r.players[1-rang],r);
+            }
+        }
 });
 
     return router;
