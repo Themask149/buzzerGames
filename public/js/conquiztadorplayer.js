@@ -137,6 +137,7 @@ socket.on("Conquiz start manche2", (room) => {
     currentRoom=room;
     $('#app-div-manche1').hide("slow");
     $('#app-div-manche2').show("slow");
+    moveBarre(room.players[0].points,room.players[1].points);
 });
 
 socket.on("Conquiz start manche1", (room) => {
@@ -240,20 +241,23 @@ function liberer(){
         });
 }
 
-function moveBarre(pointsA,pointsB){
-    var unPoint=100/18;
-    var baseA = extractNumberFromPercent($("#grad-interieur-white-1").attr("offset"));
+async function moveBarre(pointsA,pointsB){
+    console.log(pointsA,pointsB);
+    var unPoint=100.0/18.0;
+    var baseA = 100-extractNumberFromPercent($("#grad-interieur-white-1").attr("offset"));
     var ecartA = pointsA*unPoint-baseA;
     var baseB = extractNumberFromPercent($("#grad-interieur-white-2").attr("offset"));
     var ecartB = pointsB*unPoint-baseB;
-    for (let i =0;i<nbPas;i++){
-        $("#grad-interieur-white-1").attr("offset",`${baseA-ecartA*i/nbPas}%`);
-        var offsetB=baseB-ecartB*i/nbPas;
+    console.log(ecartA,ecartB,baseA,baseB);
+    for (let i =0;i<=nbPas;i++){
+        $("#grad-interieur-white-1").attr("offset",`${100.0-baseA-ecartA*i/nbPas}%`);
+        var offsetB=baseB+ecartB*i/nbPas;
         $("#grad-interieur-white-2").attr("offset",`${offsetB}%`);
-        $("#grad-interieur-white-2").attr("offset",`${offsetB}%`);
-        sleep(tempsMovement*1000/nbPas);
+        $("#grad-interieur-orange").attr("offset",`${offsetB}%`);
+        await sleep(tempsMovement*1000/nbPas);
     }
 }
+
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

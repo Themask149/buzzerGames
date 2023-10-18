@@ -82,13 +82,15 @@ $('#Vrai-manche1').on('click',(e)=>{
 });
 
 $('#Vrai-manche2').on('click',(e)=>{
-    socket.emit("Conquiz answer",true,currentPoints)
+    socket.emit("Conquiz update score",currentPlayer,currentPoints.toString());
     liberer();
+    currentPlayer=null;
 })
 
 $('#Faux-manche2').on('click',(e)=>{
-    socket.emit("Conquiz answer",false,currentPoints)
+    socket.emit("Conquiz update score",currentPlayer,(-currentPoints).toString());
     liberer();
+    currentPlayer=null;
 })
 
 $('#Start-Manche2').on('click',(e)=>{
@@ -207,6 +209,7 @@ socket.on("Conquiz start manche2", (room) => {
     room.players.forEach((player)=>{
         $(document).off('click', `.joueur-${player.username}`);
     })
+    moveBarre(room.players[0].points,room.players[1].points);
     
 });
 
@@ -233,6 +236,7 @@ socket.on("Conquiz remove current player", (room) => {
 socket.on("Conquiz buzzed", (room,rang)=>{
     console.log("buzzed")
     currentRoom=room;
+    currentPlayer=rang-1;
     lowLag.play('/components/buzzsound.mp3');
     $("#buzzer").off('click');
     $("#buzzer-state").text("Buzzed");
@@ -356,14 +360,13 @@ function updatePoints(){
 
 async function moveBarre(pointsA,pointsB){
     console.log(pointsA,pointsB);
-    var unPoint=100/18;
-    var baseA = extractNumberFromPercent($("#grad-interieur-white-1").attr("offset"));
+    var unPoint=100.0/18.0;
+    var baseA = 100-extractNumberFromPercent($("#grad-interieur-white-1").attr("offset"));
     var ecartA = pointsA*unPoint-baseA;
     var baseB = extractNumberFromPercent($("#grad-interieur-white-2").attr("offset"));
     var ecartB = pointsB*unPoint-baseB;
     console.log(ecartA,ecartB,baseA,baseB);
-    for (let i =1;i<=nbPas;i++){
-        console.log("je bouge")
+    for (let i =0;i<=nbPas;i++){
         $("#grad-interieur-white-1").attr("offset",`${100-baseA-ecartA*i/nbPas}%`);
         var offsetB=baseB+ecartB*i/nbPas;
         $("#grad-interieur-white-2").attr("offset",`${offsetB}%`);
@@ -371,6 +374,7 @@ async function moveBarre(pointsA,pointsB){
         await sleep(tempsMovement*1000/nbPas);
     }
 }
+
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
