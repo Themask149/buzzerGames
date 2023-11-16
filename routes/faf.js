@@ -100,6 +100,9 @@ export default function (io) {
                 else if ( r.players.find((player) => { return player.socketId === socket.id; })) {
                     fafNamespace.in(player.socketId).emit("FAF error", "Player déjà présent dans la room");
                 }
+                else if ( r.players.find((play) => { return play.username === player.username; })) {
+                    fafNamespace.in(player.socketId).emit("FAF error", "Player déjà présent dans la room");
+                }
                 else if (r.options.whitelistEnabled && !r.options.whitelist.includes(player.username)) {
                     fafNamespace.in(player.socketId).emit("FAF error", "Vous n'êtes pas dans la whitelist");
                 }
@@ -319,6 +322,7 @@ export default function (io) {
                     
                     if (r) {
                         r.players = r.players.filter((player) => player.username !== p.username);
+                        r.spectateurs = r.spectateurs.filter((player) => player.username !== p.username);
                     }
                     fafNamespace.to(p.roomId).emit("FAF remove player", r);
                 }

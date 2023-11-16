@@ -51,6 +51,7 @@ socket.on("Conquiz player init",(room,p)=>{
     for (let i = 1; i <= 3; i++) {
         $(`#theme${i}`).text(room.state.themesList[i-1]);
     }
+    catchup();
 });
 
 socket.on("Conquiz spectateur init",(room,p)=>{
@@ -69,6 +70,7 @@ socket.on("Conquiz spectateur init",(room,p)=>{
         $(`#theme${i}`).text(room.state.themesList[i-1]);
     }
     $("#spec-message").show();
+    catchup();
 });
 
 
@@ -111,6 +113,27 @@ socket.on("Conquiz current player",async (room)=>{
     $(`.joueur-${currentPlayer}`).css('background-color','orange');
 });
 
+socket.on("Conquiz estimation",(question)=>{
+    $("#conquiz-estimation-question").text(question);
+    $("#modal-manche0").modal("show");
+    $("#conquiz-manche0-button").on('click',function(){
+        var estimation = parseInt($("#conquiz-estimation-reponse-input").val());
+        if (isNaN(estimation)){
+            alert("Veuillez entrer un nombre");
+            return;
+        }
+        else{
+            $("#modal-manche0").modal("hide");
+        }
+        socket.emit("Conquiz estimation reponse",estimation);
+    });
+})
+
+socket.on("Conquiz estimation validation",(room)=>{
+    currentRoom=room;
+    $(`modal-manche0`).modal("hide");
+});
+
 socket.on("Conquiz update score",(player,room)=>{
     currentRoom=room;
     $(`.${player.username}-score`).text(player.points);
@@ -119,14 +142,25 @@ socket.on("Conquiz update score",(player,room)=>{
     }
 });
 
-socket.on("Conquiz question", (question,id) => {
-    $("#question-div").text(question);
-    $(`#${id}`).removeClass("block");
-    $(`#${id}`).addClass("used-block");
-    $("#modalQuestion").modal("show");
+socket.on("Conquiz couleurs",(room)=>{
+    currentRoom=room;
+    $('#grad-interieur-blue').css("stop-color",room.options.couleurs[0]);
+    $('#grad-interieur-orange').css("stop-color",room.options.couleurs[1]);
+});
+
+socket.on("Conquiz question", (room,question) => {
+    currentRoom=room;
+    afficherQuestion(question);
 })
 
-socket.on("Conquiz remove question", () => {
+socket.on("Conquiz remove question", (bool,r) => {
+    if (bool){
+        $(`#${currentRoom.state.questionid}`).addClass("good-block");
+    }
+    else{
+        $(`#${currentRoom.state.questionid}`).addClass("bad-block");
+    }
+    currentRoom=r;
     console.log("remove question");
     $("#modalQuestion").modal("hide");
 })
@@ -200,6 +234,38 @@ socket.on("Conquiz update currentPoints",(currentPoints)=>{
     });
 })
 
+function catchup(){
+    $('#grad-interieur-blue').css("stop-color",currentRoom.options.couleurs[0]);
+    $('#grad-interieur-orange').css("stop-color",currentRoom.options.couleurs[1]);
+    if (currentRoom.state.manche==1){
+        $('#app-div-manche2').hide("slow");
+        $('#app-div-manche1').show("slow");
+        currentRoom.state.usedBlocks.forEach(([blockid,bool])=>{
+            $(`#${blockid}`).addClass("used-block");
+            if (bool){
+                $(`#${blockid}`).addClass("good-block");
+            }
+            else{
+                $(`#${blockid}`).addClass("bad-block");
+            }
+        }
+        );
+        if (currentRoom.state.question!=null){
+            afficherQuestion(currentRoom.state.question);
+        }
+    }
+    else if (currentRoom.state.manche==2){
+        $('#app-div-manche1').hide("slow");
+        $('#app-div-manche2').show("slow");
+        moveBarre(currentRoom.players[0].points,currentRoom.players[1].points);
+    }
+    else if (currentRoom.state.manche==0){
+        $('#app-div-manche1').show("slow");
+        $('#app-div-manche2').hide("slow");
+        $('modal-manche0').modal("show");
+        $('#manche0-modal').text("Estimation en cours, veuillez patienter")
+    }
+}
 
 function buzzerAction(){
     lowLag.play('/components/buzzsound.mp3');
@@ -265,4 +331,11 @@ function sleep(ms) {
 
 function extractNumberFromPercent(percent){
     return parseFloat(percent.substring(0,percent.length-1));
+}
+
+function afficherQuestion(question){
+    $("#question-div").text(question);
+    $(`#${currentRoom.state.questionid}`).removeClass("block");
+    $(`#${currentRoom.state.questionid}`).addClass("used-block");
+    $("#modalQuestion").modal("show");
 }

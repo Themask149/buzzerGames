@@ -21,7 +21,7 @@ lowLag.load('/components/buzzsound.mp3');
 var currentRoom;
 var currentPlayer;
 var roundTime=20;
-var period=50;
+var period=100;
 var step=10*period/roundTime;
 var countdownInterval;
 var boite=4;
@@ -133,7 +133,7 @@ socket.on('FAF new spectateur',(room,spectateur)=>{
     $(document).on('click',`#${spectateur.socketId}-kick`,(e)=>{
         e.preventDefault();
         console.log('kick');
-        socket.emit("FAF kick",player.socketId);
+        socket.emit("FAF kick",spectateur.socketId);
     });
 });
 

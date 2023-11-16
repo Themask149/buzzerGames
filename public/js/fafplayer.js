@@ -15,7 +15,7 @@ const textMatrices = ["matrix(2.541135, 0, 0, 1.978724, -341.147898, 151.203053)
 var currentRoom;
 var currentPlayer;
 var roundTime=20;
-var period=50;
+var period=100;
 var step=10*period/roundTime;
 var countdownInterval;
 var boite=4;
@@ -129,6 +129,12 @@ socket.on("FAF switch", async (room)=>{
 socket.on("FAF main", (room)=>{
     currentRoom=room;
     console.log("changement de couleur");
+    clearInterval(countdownInterval);
+    changeCouleurExterieur(boite,false);
+    changeCouleurInterieur(boite,0);
+    boite--;
+    changeCouleurExterieur(boite,true);
+    countdownInterval=setInterval(updateCountdown,period);
     $(`#joueur-${room.players[room.state.mainInGame].username}`).css('background-color','orange');
     $(`#joueur-${room.players[1-room.state.mainInGame].username}`).css('background-color','whitesmoke');
 })
@@ -158,6 +164,7 @@ socket.on("FAF block", (r)=>{
 
 socket.on("FAF end", (bool,room) => {
     block();
+    boite=4;
     currentRoom=room;
     $(`#joueur-${room.players[0].username}`).css('background-color','whitesmoke');
     $(`#joueur-${room.players[1].username}`).css('background-color','whitesmoke');
@@ -310,15 +317,8 @@ function changeCouleurExterieur(n,bool){
 function updateCountdown(){
     updateColor(boite);
     if ($(`#grad-interieur-${boite}-orange`).attr('offset')=="0%"&&$(`#grad-interieur-${boite}-blue`).attr('offset')=="0%"){
-        if (boite==1){
-            boite=4;
-            clearInterval(countdownInterval);
-        }
-        else{
-            boite--;
-            console.log(boite);
-            changeCouleurExterieur(boite+1,false);
-        }
+        clearInterval(countdownInterval);
+
     }
 }
 

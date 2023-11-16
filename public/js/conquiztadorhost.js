@@ -8,8 +8,10 @@ var myplayer = {
 };
 
 const socket = io("/conquiztador");
-const questions = [];
+var questions = [];
 var themesList = [];
+var reponseEstimation;
+var dateEstimation;
 
 var currentPlayer;
 var currentRoom;
@@ -17,6 +19,7 @@ var currentPoints=1;
 var pointMaxManche2 = 6;
 var rateManche2=30;
 var pointsCountdown;
+var timerManche2;
 var tempsMovement=1;
 var nbPas=50;
 
@@ -34,7 +37,6 @@ $("#form-pseudo").on('submit', function (e){
     stringQuestion=$("#listeQuestions").val();
     if (checkQuestions(stringQuestion)){
         $("#user-card").hide("slow");
-        $("#user-card").empty();
         $('#app-div-manche1').show("slow");
         $('#settings-button').show("slow");
         $('#settings-button').on("click", (e)=>{
@@ -46,6 +48,7 @@ $("#form-pseudo").on('submit', function (e){
             }
         });
         socket.emit("Conquiz playerDataHost",myplayer,themesList);
+        socket.emit("Conquiz couleurs",$('#ColorInput1').val(),$('#ColorInput2').val());
     }
 });
 
@@ -57,6 +60,25 @@ $('#conquiz-whitelist-button').on('click',(e)=>{
         socket.emit("Conquiz whitelist",false,"");
     }
     
+});
+
+$('#conquiz-manche0-button').on('click',(e)=>{
+    if (currentRoom.players.length==2){
+        reponseEstimation=parseInt($('#conquiz-estimation-reponse-input').val());
+        if (reponseEstimation==NaN){
+            alert("Il faut une réponse numérique");
+            return;
+        }
+        socket.emit("Conquiz estimation",$('#conquiz-estimation-question-input').val());
+        dateEstimation=new Date().getTime();
+        $("#success-alert").html(`<strong>Estimation envoyée ! </strong>`);
+        $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
+            $("#success-alert").slideUp(500);
+        });
+    }
+    else{
+        alert("Il faut 2 joueurs pour commencer");
+    }
 });
 
 $('.block').on('click',(e)=>{
@@ -74,10 +96,16 @@ $('.block').on('click',(e)=>{
 })
 
 $('#Faux-manche1').on('click',(e)=>{
+    if (currentRoom.state.question!=null){
+        $(`#${currentRoom.state.questionid}`).addClass("bad-block");
+    }
     socket.emit("Conquiz answer",false,$('#question-div').data("points"));
 });
 
 $('#Vrai-manche1').on('click',(e)=>{
+    if (currentRoom.state.question!=null){
+        $(`#${currentRoom.state.questionid}`).addClass("good-block");
+    }
     socket.emit("Conquiz answer",true,$('#question-div').data("points"));
 });
 
@@ -121,6 +149,8 @@ $("#conquiz-manche2-button").on('click',(e)=>{
         rateManche2=$("#conquiz-rate").val();
     }
     pointsCountdown=setInterval(updatePoints,rateManche2*1000)
+    timerManche2=setInterval(updateTimer,1000);
+    dateEstimation=new Date().getTime();
     liberer();
     $("#modal-manche2").modal("hide");
 
@@ -129,6 +159,7 @@ $("#conquiz-manche2-button").on('click',(e)=>{
 socket.on('Conquiz host launch',(player,room)=>{
     myplayer=player;
     currentRoom=room;
+    $('#modal-manche0').modal("show");
     for (let i = 1; i <= 3; i++) {
         $(`#theme${i}`).text(room.state.themesList[i-1]);
     }
@@ -136,11 +167,11 @@ socket.on('Conquiz host launch',(player,room)=>{
 
 socket.on('Conquiz new spectateur',(room,spectateur)=>{
     currentRoom=room;
-    $('.spectateurs-list').append(`<li class="list-group-item" class="spectateur-${spectateur.username}">${spectateur.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" class="${spectateur.socketId}-kick" class="btn btn-secondary kick">kick</button> </div> </span></li>`);
+    $('.spectateurs-list').append(`<li class="list-group-item spectateur-${spectateur.username}">${spectateur.username} <div class="btn-group btn-group-sm" role="group"> <button type="button" class="${spectateur.socketId}-kick" class="btn btn-secondary kick">kick</button> </div> </span></li>`);
     $(document).on('click',`.${spectateur.socketId}-kick`,(e)=>{
         e.preventDefault();
         console.log('kick');
-        socket.emit("FAF kick",spectateur.socketId);
+        socket.emit("Conquiz kick",spectateur.socketId);
     });
 });
 
@@ -179,7 +210,7 @@ socket.on("Conquiz remove player",(room)=>{
 
 socket.on("Conquiz remove spectateur",(room,player)=>{
     currentRoom=room;
-    $(`.${player.username}`).remove();
+    $(`.spectateur-${player.username}`).remove();
 });
 
 socket.on("Conquiz current player",async (room)=>{
@@ -190,6 +221,36 @@ socket.on("Conquiz current player",async (room)=>{
     currentPlayer=room.players[room.state.main].username;
     $(`.joueur-${currentPlayer}`).css('background-color','orange');
 });
+
+socket.on("Conquiz couleurs",(room)=>{
+    currentRoom=room;
+    $('#grad-interieur-blue').css("stop-color",room.options.couleurs[0]);
+    $('#grad-interieur-orange').css("stop-color",room.options.couleurs[1]);
+});
+
+function estimationReponse(reponse,username,i){
+    $(`#joueur${i}-reponse-div`).text("Reponse: "+reponse);
+    $(`#joueur${i}-ecart-div`).text("Ecart: "+Math.abs(reponseEstimation-reponse));
+    $(`#joueur${i}-temps-div`).text("Temps: "+(new Date().getTime()-dateEstimation)/1000);
+    $(`#valider-reponse${i}`).show("fast");
+    $(`#valider-reponse${i}`).on('click',(e)=>{
+        $(`#modal-manche0`).modal("hide");
+        socket.emit("Conquiz estimation validation",username);
+        socket.emit("Conquiz current player",currentRoom.players[i-1].username,i-1);
+    })
+}
+
+socket.on("Conquiz estimation reponse",(reponse,player)=>{
+    if (currentRoom.players[0].username==player.username){
+        estimationReponse(reponse,player.username,1);
+    }
+    else if (currentRoom.players[1].username==player.username){
+        estimationReponse(reponse,player.username,2);
+    }
+    else{
+        alert("Erreur de joueur");
+    }
+})
 
 socket.on("Conquiz update score",async (player,room)=>{
     currentRoom=room;
@@ -217,6 +278,7 @@ socket.on("Conquiz start manche1", (room) => {
     console.log("start manche1");
     currentRoom=room;
     currentPlayer=null;
+    clearInterval(pointsCountdown);
     $('#app-div-manche2').hide("slow");
     $('#app-div-manche1').show("slow");
     var i=0;
@@ -233,6 +295,10 @@ socket.on("Conquiz remove current player", (room) => {
     currentPlayer=null;
 });
 
+socket.on("Conquiz question",(room,question)=>{
+    currentRoom=room;
+})
+
 socket.on("Conquiz buzzed", (room,rang)=>{
     console.log("buzzed")
     currentRoom=room;
@@ -241,7 +307,7 @@ socket.on("Conquiz buzzed", (room,rang)=>{
     $("#buzzer").off('click');
     $("#buzzer-state").text("Buzzed");
     $("#buzzer-circle").attr('fill',"red");
-    $(`.joueur${rang}-card`).css('background-color','orange');
+    $(`.joueur${rang}-card`).css('background-color',room.options.couleurs[rang-1]);
     $('#validate-answer').show("fast");
 
 })
@@ -256,6 +322,8 @@ socket.on("Conquiz error",(err)=>{
 });
 
 function checkQuestions(stringQuestion){
+    themesList = [];
+    questions = [];
     var questionsList = stringQuestion.split("€");
     if (questionsList.length!=6){
         alert("Il faut au moins 3 thèmes et 9 questions");
@@ -382,4 +450,9 @@ function sleep(ms) {
 
 function extractNumberFromPercent(percent){
     return parseFloat(percent.substring(0,percent.length-1));
+}
+
+function updateTimer(){
+    secEcouler=Math.floor((new Date().getTime()-dateEstimation)/1000);
+    $('#countdown-manche2').text(`${Math.floor(secEcouler/60)}:${secEcouler%60}`)
 }

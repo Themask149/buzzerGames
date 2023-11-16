@@ -6,8 +6,12 @@
     <body>
         <%- include('../partials/navbarlow'); %>
 
-            <h1 class="text-center display-4">Game Code: <%= code %>
+            <h1 class="text-center display-4" style="display: none;">Game Code: <%= code %>
             </h1>
+            
+            <div class="alert alert-success mt-5" style="display: none;" id="success-alert">
+
+            </div>
 
             <!-- Pseudo -->
             <div class="row">
@@ -132,7 +136,7 @@
 
                 </div>
 
-                <div class="row py-2" id="turf">
+                <div class="row py-2 mx-1" id="turf">
                     <?xml version="1.0" encoding="utf-8"?>
                     <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
                         <linearGradient id="grad-interieur" x1="100%" y1="0%" x2="0%" y2="0%">
@@ -184,11 +188,6 @@
             </div>
 
 
-            <div class="alert alert-success mt-5" style="display: none;" id="success-alert">
-
-            </div>
-
-
             <div class="row" id="spec-message" style="display: none;">
                 <h2>Tu es spectateur</h2>
             </div>
@@ -205,6 +204,44 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="modal fade" id="modal-manche0" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                aria-labelledby="manche0-modal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 class="modal-title" id="manche0-modal">Estimation </h2>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-2">
+                                    Question : 
+                                    </label>
+                                </div>
+                                <div class="col-2" id="conquiz-estimation-question"> </div>
+                                
+                                <div class="col-2"><label class="form-check-label " for="conquiz-estimation-reponse">
+                                    Réponse : 
+                                    </label>
+                                </div>
+                                    <div class="col-2"><input type="number" name="conquiz-estimation-reponse" id="conquiz-estimation-reponse-input"
+                                        class="form-control col-2" minlength="0" placeholder="0" required></div>
+                        
+                                </div>
+                                <div class="col-3"><button type="button" class="btn btn-primary"
+                                    id="conquiz-manche0-button">Répondre</button></div>
+                            </div>
+                            
+
+                        <div class="modal-footer" id="manche0-options">
+                            <div class="row">
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
 
                 <%- include('../partials/script'); %>
