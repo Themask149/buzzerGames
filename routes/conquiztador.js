@@ -236,7 +236,12 @@ export default function (io) {
                 }
                 r.state.main=1-r.state.main;
                 ConquiztadorNS.to(p.roomId).emit("Conquiz current player", r);
-
+                if (bool){
+                    ConquiztadorNS.to(p.roomId).emit("Conquiz son",true);
+                }
+                else{
+                    ConquiztadorNS.to(p.roomId).emit("Conquiz son",false);
+                }
             }
         });
 

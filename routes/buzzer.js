@@ -11,7 +11,7 @@ export default function (io) {
     const router = express.Router();
     router.use(cookieParser());
 
-    router.get('/',adminAuth, (req, res) => {
+    router.get('/', (req, res) => {
         res.render('buzzer/buzzerHome');
     });
 

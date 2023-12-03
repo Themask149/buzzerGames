@@ -257,6 +257,10 @@ socket.on("Conquiz son",(bool)=>{
     }
 })
 
+socket.on("Conquiz end", ()=>{
+    lowLag.play('/components/Bonne_reponse__VICTOIRE.mp3');
+});
+
 socket.on("Conquiz update currentPoints",(currentPoints)=>{
     $("#success-alert").html(`<strong>Nous passons à ${currentPoints} </strong>`);
     $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){

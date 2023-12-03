@@ -11,7 +11,7 @@ export default function (io) {
     const router = express.Router();
     router.use(cookieParser());
 
-    router.get('/',adminAuth, (req, res) => {
+    router.get('/', (req, res) => {
         res.render('4als/4alsHome');
     });
     var rooms = [{ players: [], id: 123456789, state: { currentPlayer:null, start: false, maxScore: 0,score:0 },options:{roundTime:45}}];
