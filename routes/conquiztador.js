@@ -162,6 +162,18 @@ export default function (io) {
         }
         });
 
+        socket.on("Conquiz theme",()=>{
+            if (p && p.host) {
+                ConquiztadorNS.to(p.roomId).emit("Conquiz theme");
+            }
+        })
+
+        socket.on("Conquiz suspense",()=>{
+            if (p && p.host) {
+                ConquiztadorNS.to(p.roomId).emit("Conquiz suspense");
+            }
+        });
+
         socket.on("Conquiz estimation",(question)=>{
             if (p && p.host) {
                 console.log(`[Conquiz ${r.id}] estimation : `+question);
@@ -230,8 +242,18 @@ export default function (io) {
 
         socket.on("Conquiz update score",(rang,points)=>{
             if (p && p.host && points.match(/^-?[0-9]+$/)!=null) {
-                updateScore(points,rang);   
+                updateScore(points,rang);
+                if (r.players[0].points==18 || r.players[1].points==18){
+                    ConquiztadorNS.to(p.roomId).emit("Conquiz end",r);
+                }
+                else if (points>0){
+                    ConquiztadorNS.to(p.roomId).emit("Conquiz son",true);
+                }
+                else{
+                    ConquiztadorNS.to(p.roomId).emit("Conquiz son",false);
+                }
             }
+            
         });
 
         socket.on("Conquiz start manche2",()=>{

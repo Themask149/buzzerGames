@@ -22,12 +22,17 @@ var pointsCountdown;
 var timerManche2;
 var tempsMovement=1;
 var nbPas=50;
+var reponsesEstimation=[];
 
 
 lowLag.init();
-lowLag.load('/components/Ding.mp3');
-lowLag.load('/components/times-up.mp3');
-lowLag.load('/components/buzzsound.mp3');
+lowLag.load('/components/Bonne_reponse.mp3');
+lowLag.load('/components/Bonne_reponse__VICTOIRE.mp3');
+lowLag.load('/components/Buzzer_Joueur_1_Champion.mp3');
+lowLag.load('/components/Buzzer_Joueur_2_Challenger.mp3');
+lowLag.load('/components/Suspense.mp3');
+lowLag.load('/components/Mauvaise_reponse.mp3');
+lowLag.load('/components/Presentation_des_3_themes.mp3');
 
 $("#form-pseudo").on('submit', function (e){
     e.preventDefault();
@@ -99,6 +104,7 @@ $('#Faux-manche1').on('click',(e)=>{
     if (currentRoom.state.question!=null){
         $(`#${currentRoom.state.questionid}`).addClass("bad-block");
     }
+    lowLag.play('/components/Mauvaise_reponse.mp3');
     socket.emit("Conquiz answer",false,$('#question-div').data("points"));
 });
 
@@ -106,7 +112,13 @@ $('#Vrai-manche1').on('click',(e)=>{
     if (currentRoom.state.question!=null){
         $(`#${currentRoom.state.questionid}`).addClass("good-block");
     }
+    lowLag.play('/components/Bonne_reponse.mp3');
     socket.emit("Conquiz answer",true,$('#question-div').data("points"));
+});
+
+$('#Suspense-manche1').on('click',(e)=>{
+    lowLag.play('/components/Suspense.mp3');
+    socket.emit("Conquiz suspense");
 });
 
 $('#Vrai-manche2').on('click',(e)=>{
@@ -120,6 +132,19 @@ $('#Faux-manche2').on('click',(e)=>{
     liberer();
     currentPlayer=null;
 })
+
+$("#Show-Themes").on('click',async (e)=>{
+    $("#Show-Themes").hide("slow");
+    $("#Show-Themes").off('click');
+    socket.emit("Conquiz theme");
+    lowLag.play('/components/Presentation_des_3_themes.mp3');
+    $("#theme1").css("visibility","visible");
+    await sleep(1300);
+    $("#theme2").css("visibility","visible");
+    await sleep(1300);
+    $("#theme3").css("visibility","visible");
+});
+
 
 $('#Start-Manche2').on('click',(e)=>{
     if (currentRoom.players.length==2){
@@ -215,9 +240,8 @@ socket.on("Conquiz remove spectateur",(room,player)=>{
 
 socket.on("Conquiz current player",async (room)=>{
     currentRoom=room;
-    if (currentPlayer!=null){
-        $(`.joueur-${currentPlayer}`).css('background-color','whitesmoke');
-    }
+    $(`.joueur-${room.players[0].username}`).css('background-color','whitesmoke');
+    $(`.joueur-${room.players[1].username}`).css('background-color','whitesmoke');
     currentPlayer=room.players[room.state.main].username;
     $(`.joueur-${currentPlayer}`).css('background-color','orange');
 });
@@ -229,6 +253,7 @@ socket.on("Conquiz couleurs",(room)=>{
 });
 
 function estimationReponse(reponse,username,i){
+    reponsesEstimation.push(reponse);
     $(`#joueur${i}-reponse-div`).text("Reponse: "+reponse);
     $(`#joueur${i}-ecart-div`).text("Ecart: "+Math.abs(reponseEstimation-reponse));
     $(`#joueur${i}-temps-div`).text("Temps: "+(new Date().getTime()-dateEstimation)/1000);
@@ -238,6 +263,14 @@ function estimationReponse(reponse,username,i){
         socket.emit("Conquiz estimation validation",username);
         socket.emit("Conquiz current player",currentRoom.players[i-1].username,i-1);
     })
+    if (reponsesEstimation.length==2){
+        if (Math.abs(reponsesEstimation[0]-reponseEstimation)>Math.abs(reponsesEstimation[1]-reponseEstimation)){
+            $(`.joueur-${username}`).css('background-color','orange');
+        }
+        else{
+            $(`.joueur-${currentRoom.players[2-i].username}`).css('background-color','orange');
+        }
+    }
 }
 
 socket.on("Conquiz estimation reponse",(reponse,player)=>{
@@ -303,7 +336,13 @@ socket.on("Conquiz buzzed", (room,rang)=>{
     console.log("buzzed")
     currentRoom=room;
     currentPlayer=rang-1;
-    lowLag.play('/components/buzzsound.mp3');
+    myplayer.state="buzzed";
+    if (rang==1){
+        lowLag.play('/components/Buzzer_Joueur_1_Champion.mp3');
+    }
+    else{
+        lowLag.play('/components/Buzzer_Joueur_2_Challenger.mp3');
+    }
     $("#buzzer").off('click');
     $("#buzzer-state").text("Buzzed");
     $("#buzzer-circle").attr('fill',"red");
@@ -311,6 +350,19 @@ socket.on("Conquiz buzzed", (room,rang)=>{
     $('#validate-answer').show("fast");
 
 })
+
+socket.on("Conquiz son",(bool)=>{
+    if (bool){
+        lowLag.play('/components/Bonne_reponse.mp3');
+    }
+    else{
+        lowLag.play('/components/Mauvaise_reponse.mp3');
+    }
+})
+
+socket.on("Conquiz end", ()=>{
+    lowLag.play('/components/Bonne_reponse__VICTOIRE.mp3');
+});
 
 socket.on("disconnect",()=>{
     alert("L'hôte s'est déconnecté");

@@ -17,9 +17,13 @@ var tempsMovement=1;
 var nbPas=50;
 
 lowLag.init();
-lowLag.load('/components/Ding.mp3');
-lowLag.load('/components/times-up.mp3');
-lowLag.load('/components/buzzsound.mp3');
+lowLag.load('/components/Bonne_reponse.mp3');
+lowLag.load('/components/Bonne_reponse__VICTOIRE.mp3');
+lowLag.load('/components/Buzzer_Joueur_1_Champion.mp3');
+lowLag.load('/components/Buzzer_Joueur_2_Challenger.mp3');
+lowLag.load('/components/Suspense.mp3');
+lowLag.load('/components/Mauvaise_reponse.mp3');
+lowLag.load('/components/Presentation_des_3_themes.mp3');
 
 
 $("#form-pseudo").on('submit', function (e){
@@ -106,9 +110,8 @@ socket.on("Conquiz remove player",(room)=>{
 
 socket.on("Conquiz current player",async (room)=>{
     currentRoom=room;
-    if (currentPlayer!=null){
-        $(`.joueur-${currentPlayer}`).css('background-color','whitesmoke');
-    }
+    $(`.joueur-${room.players[0].username}`).css('background-color','whitesmoke');
+    $(`.joueur-${room.players[1].username}`).css('background-color','whitesmoke');
     currentPlayer=room.players[room.state.main].username;
     $(`.joueur-${currentPlayer}`).css('background-color','orange');
 });
@@ -132,6 +135,19 @@ socket.on("Conquiz estimation",(question)=>{
 socket.on("Conquiz estimation validation",(room)=>{
     currentRoom=room;
     $(`modal-manche0`).modal("hide");
+});
+
+socket.on("Conquiz theme", async (i)=>{
+    lowLag.play('/components/Presentation_des_3_themes.mp3');
+    $("#theme1").css("visibility","visible");
+    await sleep(1300);
+    $("#theme2").css("visibility","visible");
+    await sleep(1300);
+    $("#theme3").css("visibility","visible");
+})
+
+socket.on("Conquiz suspense",()=>{
+    lowLag.play('/components/Suspense.mp3');
 });
 
 socket.on("Conquiz update score",(player,room)=>{
@@ -209,15 +225,20 @@ socket.on("Conquiz libere", (r)=>{
 });
 
 socket.on("Conquiz buzzed", (room,rang)=>{
-    $(`.joueur${rang}-card`).css('background-color','orange');
+    $(`.joueur${rang}-card`).css('background-color',room.options.couleurs[rang-1]);
     console.log("buzzed")
     currentRoom=room;
     myplayer.state="buzzed";
+    currentPlayer=rang-1;
+    if (rang==1){
+        lowLag.play('/components/Buzzer_Joueur_1_Champion.mp3');
+    }
+    else{
+        lowLag.play('/components/Buzzer_Joueur_2_Challenger.mp3');
+    }
     $("#buzzer").off('click');
     $("#buzzer-state").text("Buzzed");
     $("#buzzer-circle").attr('fill',"red");
-    $(document).off('keydown');
-    lowLag.play('/components/buzzsound.mp3');
 })
 
 socket.on("Conquiz block", (r)=>{
@@ -226,6 +247,15 @@ socket.on("Conquiz block", (r)=>{
     block();
 
 });
+
+socket.on("Conquiz son",(bool)=>{
+    if (bool){
+        lowLag.play('/components/Bonne_reponse.mp3');
+    }
+    else{
+        lowLag.play('/components/Mauvaise_reponse.mp3');
+    }
+})
 
 socket.on("Conquiz update currentPoints",(currentPoints)=>{
     $("#success-alert").html(`<strong>Nous passons à ${currentPoints} </strong>`);

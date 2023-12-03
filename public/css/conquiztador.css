@@ -46,3 +46,12 @@
     left: 50%;
     transform: translateX(-50%);
   }
+
+.theme {
+    transition: visibility 0.5s ease; /* Add smooth transition for the visibility property */
+}
+
+body {
+  background-image: url("../components/carte.jpeg");
+  background-size: cover;
+}
