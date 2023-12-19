@@ -205,6 +205,10 @@ socket.on("Conquiz remove current player", (room) => {
     currentPlayer=null;
 });
 
+socket.on("Conquiz end", ()=>{
+    lowLag.play('/components/Bonne_reponse__VICTOIRE.mp3');
+});
+
 
 socket.on("disconnect",()=>{
     alert("L'hôte s'est déconnecté");

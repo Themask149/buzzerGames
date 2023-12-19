@@ -249,7 +249,7 @@ export default function (io) {
             if (p && p.host && points.match(/^-?[0-9]+$/)!=null) {
                 updateScore(points,rang);
                 if (r.players[0].points==18 || r.players[1].points==18){
-                    ConquiztadorNS.to(p.roomId).emit("Conquiz end",r);
+                    ConquiztadorNS.to(p.roomId).emit("Conquiz end");
                 }
                 else if (points>0){
                     ConquiztadorNS.to(p.roomId).emit("Conquiz son",true);
@@ -344,7 +344,7 @@ export default function (io) {
         });
         
         function updateScore(point,rang){
-            if (p && p.host) {
+            if (p && p.host && r.players[rang] && r.players[1-rang]) {
                 console.log(`[Conquiz ${r.id}] update score`);
                 r.players[rang].points+=parseInt(point);
                 if (r.players[rang].points+r.players[1-rang].points>18){
