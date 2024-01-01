@@ -33,7 +33,7 @@
     "jquery": "^3.6.0",
     "jsonwebtoken": "^9.0.0",
     "mongodb": "^5.1.0",
-    "mongoose": "^7.0.3",
+    "mongoose": "^7.3.4",
     "nodemon": "^2.0.22",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
