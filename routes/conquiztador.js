@@ -351,9 +351,11 @@ export default function (io) {
                     r.players[1-rang].points = 18-r.players[rang].points;
                 }
                 if (r.players[rang].points<0){
+                    r.players[1-rang].points-=r.players[rang].points;
                     r.players[rang].points=0;
                 }
                 if (r.players[1-rang].points<0){
+                    r.players[rang].points-=r.players[1-rang].points;
                     r.players[1-rang].points=0;
                 }
                 if (r.players[rang].points>18){

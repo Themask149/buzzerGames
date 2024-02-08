@@ -56,7 +56,7 @@ app.use(express.static('public'));
 app.use('/apps/buzzer',routeBuzzer);
 app.use('/apps/4als',route4als);
 app.use('/apps/faf',routeFaf);
-app.use('/apps/conquiztador',routeConquiztador);
+app.use('/apps/bunka',routeConquiztador);
 // app.use('/centurie',routeCenturie);
 // app.use('/apps/qpuc',routeQPUC);
 app.use('/api',routeLoginAPI);
