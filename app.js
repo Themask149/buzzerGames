@@ -13,7 +13,7 @@ dotenv.config();
 //     key: fs.readFileSync('key.pem'),
 //     cert: fs.readFileSync('cert.pem')
 //     };
-
+console.log(process.env.MONGOLINK);
 mongoose.connect(process.env.MONGOLINK,{useNewUrlParser: true, useUnifiedTopology: true});
 
 const app = express();
