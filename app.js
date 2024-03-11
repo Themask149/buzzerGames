@@ -1,7 +1,7 @@
 // jshint esversion:6
 import { Server } from 'socket.io';
 import express from "express";
-import https from "https";
+import http from "http";
 import fs from "fs";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -9,22 +9,23 @@ import cookieParser from 'cookie-parser';
 import { adminAuth, isConnected, getUser } from './API/connectivity.js';
 
 dotenv.config();
-const options = {
-    key: fs.readFileSync('key.pem'),
-    cert: fs.readFileSync('cert.pem')
-    };
+// const options = {
+//     key: fs.readFileSync('key.pem'),
+//     cert: fs.readFileSync('cert.pem')
+//     };
 
 mongoose.connect(process.env.MONGOLINK,{useNewUrlParser: true, useUnifiedTopology: true});
 
 const app = express();
-const server = https.createServer(options,app);
+const server = http.createServer(app);
 const port = process.env.PORT || 8080;
 const HOST = '192.168.1.130';
 const io = new Server(server);
 import routeBuzzerFunction from './routes/buzzer.js';
 import route4alsFunction from './routes/4als.js';
 import routeFafFunction from './routes/faf.js';
-import routeConquiztadorFunction from './routes/conquiztador.js';
+import routeBunkaFunction from './routes/conquiztador.js';
+import routeRandomFunction from './routes/random.js';
 // import routeCenturieFunction from './routes/centurie.js';
 import routeLoginAPIFunction from './API/loginAPI.js';
 import routeQuizzAPIFunction from './API/quizzAPI.js';
@@ -33,7 +34,8 @@ import routeQuizzAPIFunction from './API/quizzAPI.js';
 const routeBuzzer=routeBuzzerFunction(io);
 const route4als=route4alsFunction(io);
 const routeFaf=routeFafFunction(io);
-const routeConquiztador=routeConquiztadorFunction(io);
+const routeBunka=routeBunkaFunction(io);
+const routeRandom=routeRandomFunction(io);
 // const routeCenturie=routeCenturieFunction(io);
 const routeLoginAPI=routeLoginAPIFunction(io);
 const routeQuizzAPI=routeQuizzAPIFunction(io);
@@ -56,11 +58,12 @@ app.use(express.static('public'));
 app.use('/apps/buzzer',routeBuzzer);
 app.use('/apps/4als',route4als);
 app.use('/apps/faf',routeFaf);
-app.use('/apps/bunka',routeConquiztador);
+app.use('/apps/bunka',routeBunka);
+app.use('/apps/random',routeRandom);
 // app.use('/centurie',routeCenturie);
 // app.use('/apps/qpuc',routeQPUC);
 app.use('/api',routeLoginAPI);
-// app.use('/api',routeQuizzAPI);
+app.use('/api/quizz/',routeQuizzAPI);
 app.use(cookieParser());
 
  

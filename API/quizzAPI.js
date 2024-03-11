@@ -19,6 +19,23 @@ export default function (io) {
           res.status(500).json({ message: err });
         }
       });
+
+    router.get("/qrandom", async (req, res) => {
+      try {
+        const questionsCount = await Question.countDocuments({});
+        const randomIndex = Math.floor(Math.random() * questionsCount);
+        const randomQuestion = await Question.findOne().skip(randomIndex);
+    
+        if (!randomQuestion) {
+          return res.status(405).json({ message: "No questions found." });
+        }
+    
+        res.json({ message: "Random question.", question: randomQuestion });
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: err });
+      }
+    });
       
       router.get("/questions/:id", adminAuth, async (req, res) => {
         try {

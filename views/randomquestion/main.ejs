@@ -1,0 +1,26 @@
+<%- include('../partials/header',{root:"../"}); %>
+    <title>Buzzer</title>
+</head>
+
+<body>
+    <%- include('../partials/navbarlow'); %>
+
+        <div class="card m-4">
+            <div class="card-body mx-auto">
+                <h1 class="text-center">Bienvenue sur Random !</h1>
+                <p class="text-justify">C'est une petite application qui vous permet d'obtenir des questions aléatoirement !</p>
+
+                <div class="card mt-5">
+                    <div class="card-body">
+                      <button class="btn btn-primary w-100 mb-3" id="randomQuestion">Obtenir une question</button>
+                      <div id="question" class="mt-4"></div>
+                      <button class="btn btn-primary w-100 mt-3" id="randomAnswer">Obtenir la réponse</button>
+                      <div id="answer" class="mt-4"></div>
+                    </div>
+                  </div>
+            </div>
+        </div>
+
+        <%- include('../partials/script'); %>
+        <script src="/js/random.js"></script>
+</body>
