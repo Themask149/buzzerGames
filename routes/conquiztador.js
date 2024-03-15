@@ -25,10 +25,10 @@ export default function (io) {
             roomID = Math.floor(Math.random() * 899999) + 100000;
             listeCodes.push(parseInt(roomID));
             console.log("[Hosting] room " + roomID);
-            res.redirect('/apps/conquiztador/' + roomID);
+            res.redirect('/apps/bunka/' + roomID);
         }
         else if (infos.action == 'join') {
-            res.redirect('/apps/conquiztador/' + infos.code);
+            res.redirect('/apps/bunka/' + infos.code);
         }
     });
 
