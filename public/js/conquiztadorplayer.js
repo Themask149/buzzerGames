@@ -16,6 +16,28 @@ var currentPlayer;
 var tempsMovement=1;
 var nbPas=50;
 
+const konamiCode = [
+    'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+    'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+    'b', 'a'
+  ];
+var konamiIndex=0;
+$(document).keydown(function(event) {
+    console.log(event.key);
+    if (event.key === konamiCode[konamiIndex]) {
+        konamiIndex++; // Move to the next position in the sequence
+
+        // If all keys in the sequence have been pressed, execute the code
+        if (konamiIndex === konamiCode.length) {
+            $('body').css('background-color', 'green'); // Change the background color to green
+            $('body').css('background-image', 'none'); // Add a background image
+            konamiIndex = 0; // Reset the index for future input
+        }
+    } else {
+        konamiIndex = 0; // Reset the index if the key pressed does not match the sequence
+    }
+});
+
 lowLag.init();
 lowLag.load('/components/Bonne_reponse.mp3');
 lowLag.load('/components/Bonne_reponse__VICTOIRE.mp3');
@@ -181,6 +203,17 @@ socket.on("Conquiz remove question", (bool,r) => {
     $("#modalQuestion").modal("hide");
 })
 
+socket.on("Conquiz finale questions", (room) => {
+    currentRoom=room;
+    
+    setFinaleQuestions(room.state.finaleQuestions);
+});
+
+socket.on("Conquiz start finale", (room) => {
+    currentRoom=room;
+    $('#app-div-manche2').hide("slow");
+    $('#app-div-finale').show("slow");
+});
 
 socket.on("Conquiz start manche2", (room) => {
     console.log("start manche2");
@@ -250,6 +283,26 @@ socket.on("Conquiz block", (r)=>{
     myplayer.state="blocked";
     block();
 
+});
+
+socket.on("Conquiz block finale",(r)=>{
+    currentRoom=r;
+    hideFinaleQuestions();
+});
+
+socket.on("Conquiz unblock finale",(r)=>{
+    currentRoom=r;
+    setFinaleQuestions(r.state.finaleQuestions);
+});
+
+socket.on("Conquiz finale answer",(number)=>{
+    $(`#finale-${number}`).addClass("good-block");
+    $(`#finale-${number}`).text(currentRoom.state.finaleQuestions[number-1].answer);
+})
+
+socket.on("Conquiz finale unanswer",(number)=>{
+    $(`#finale-${number}`).removeClass("good-block");
+    $(`#finale-${number}`).text(currentRoom.state.finaleQuestions[number-1].question);
 });
 
 socket.on("Conquiz son",(bool)=>{
@@ -376,4 +429,21 @@ function afficherQuestion(question){
     $(`#${currentRoom.state.questionid}`).removeClass("block");
     $(`#${currentRoom.state.questionid}`).addClass("used-block");
     $("#modalQuestion").modal("show");
+}
+
+function setFinaleQuestions(questions){
+    for (let i = 1; i <= 10; i++) {
+        if ($(`#finale-${i}`).hasClass("good-block")){
+            $(`#finale-${i}`).text(questions[i-1].answer);
+        }
+        else{
+            $(`#finale-${i}`).text(questions[i-1].question);
+        }
+    }
+}
+
+function hideFinaleQuestions(){
+    for (let i = 1; i <= 10; i++) {
+        $(`#finale-${i}`).text("");
+    }
 }

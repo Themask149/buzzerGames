@@ -47,6 +47,13 @@
     transform: translateX(-50%);
   }
 
+.case-finale {
+  border-radius: 20px; /* Soft corners */
+  height: 150px; /* Large size */
+  margin: 5px; /* Adjust spacing between boxes */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
 .theme {
     transition: visibility 0.5s ease; /* Add smooth transition for the visibility property */
 }

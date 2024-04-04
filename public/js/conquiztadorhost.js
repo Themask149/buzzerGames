@@ -10,8 +10,10 @@ var myplayer = {
 const socket = io("/conquiztador");
 var questions = [];
 var themesList = [];
+var finaleQuestions = [];
 var reponseEstimation;
 var dateEstimation;
+var timeFinale=60;
 
 var currentPlayer;
 var currentRoom;
@@ -20,6 +22,7 @@ var pointMaxManche2 = 6;
 var rateManche2=30;
 var pointsCountdown;
 var timerManche2;
+var timerFinale;
 var tempsMovement=1;
 var nbPas=50;
 var reponsesEstimation=[];
@@ -34,6 +37,7 @@ lowLag.load('/components/Suspense.mp3');
 lowLag.load('/components/Mauvaise_reponse.mp3');
 lowLag.load('/components/Presentation_des_3_themes.mp3');
 
+// Mettre son finale et fin de timer
 $("#form-pseudo").on('submit', function (e){
     e.preventDefault();
     myplayer.username= $('#username').val();
@@ -100,6 +104,23 @@ $('.block').on('click',(e)=>{
     }
 })
 
+$('.case-finale').on('click',(e)=>{
+    if (currentRoom.state.finaleQuestions!=null){
+        if (!$(e.target).hasClass("good-block")){
+            var number = parseInt($(e.target).data("case"));
+            $(e.target).addClass("good-block");
+            $(e.target).text(finaleQuestions[number-1].answer);
+            socket.emit("Conquiz finale answer",number);
+        }
+        else{
+            var number = parseInt($(e.target).data("case"));
+            $(e.target).removeClass("good-block");
+            $(e.target).text(finaleQuestions[number-1].question);
+            socket.emit("Conquiz finale unanswer",number);
+        }
+    }
+})
+
 $('#Faux-manche1').on('click',(e)=>{
     if (currentRoom.state.question!=null){
         $(`#${currentRoom.state.questionid}`).addClass("bad-block");
@@ -145,6 +166,12 @@ $("#Show-Themes").on('click',async (e)=>{
     $("#theme3").css("visibility","visible");
 });
 
+$('#Start-Finale').on('click',(e)=>{
+    if (currentRoom.players.length==2){
+        socket.emit("Conquiz start finale");
+        $("#modal-finale").modal("show");
+    }
+});
 
 $('#Start-Manche2').on('click',(e)=>{
     if (currentRoom.players.length==2){
@@ -166,6 +193,28 @@ $("#bloquer").on('click',(e)=>{
     block();
 });
 
+$("#Block-finale").on('click',(e)=>{
+    if (!currentRoom.state.block){
+        socket.emit("Conquiz block finale");
+    }
+});
+
+socket.on("Conquiz block finale",(r)=>{
+    currentRoom=r;
+    timerFinale=clearInterval(timerFinale);
+})
+
+$("#Unblock-finale").on('click',(e)=>{
+    if (currentRoom.state.block){
+        socket.emit("Conquiz unblock finale");
+    }
+});
+
+socket.on("Conquiz unblock finale",(r)=>{
+    currentRoom=r;
+    timerFinale=setInterval(updateFinaleTimer,1000);
+})
+
 $("#conquiz-manche2-button").on('click',(e)=>{
     if ($('#conquiz-pointmax').val()){
         pointMaxManche2=$('#conquiz-pointmax').val();
@@ -179,6 +228,24 @@ $("#conquiz-manche2-button").on('click',(e)=>{
     liberer();
     $("#modal-manche2").modal("hide");
 
+})
+
+
+$("#finale-launch").on('click',(e)=>{
+    questionsfinale = $('#listeFinale').val();
+    if (checkFinale(questionsfinale)){
+        socket.emit("Conquiz finale questions",finaleQuestions);
+    }
+    else{
+        alert("Erreur dans les questions de la finale");
+    }
+    if ($("#conquiz-finale-time").val()){
+        timeFinale=$("#conquiz-finale-time").val();
+        $('#countdown-finale').text(timeFinale);
+    }
+    $('#modal-finale').modal("hide");
+    socket.emit("Conquiz launch finale");
+    timerFinale=setInterval(updateFinaleTimer,1000);
 })
 
 socket.on('Conquiz host launch',(player,room)=>{
@@ -294,17 +361,34 @@ socket.on("Conquiz update score",async (player,room)=>{
     }
 });
 
+socket.on("Conquiz start finale", (room) => {
+    console.log("start manche finale");
+    currentRoom=room;
+    clearInterval(pointsCountdown);
+    $('#app-div-manche2').hide("slow");
+    $('#app-div-finale').show("slow");
+    socket.emit("Conquiz remove current player");
+    room.players.forEach((player)=>{
+        $(document).off('click', `.joueur-${player.username}`);
+    })  
+});
+
+socket.on("Conquiz finale questions", (room) => {
+    currentRoom=room;
+    setFinaleQuestions(room.state.finaleQuestions);
+});
+
 socket.on("Conquiz start manche2", (room) => {
     console.log("start manche2");
     currentRoom=room;
     $('#app-div-manche1').hide("slow");
     $('#app-div-manche2').show("slow");
+    timerFinale=clearInterval(timerFinale);
     socket.emit("Conquiz remove current player");
     room.players.forEach((player)=>{
         $(document).off('click', `.joueur-${player.username}`);
     })
-    moveBarre(room.players[0].points,room.players[1].points);
-    
+    moveBarre(room.players[0].points,room.players[1].points); 
 });
 
 socket.on("Conquiz start manche1", (room) => {
@@ -362,6 +446,7 @@ socket.on("Conquiz son",(bool)=>{
 
 socket.on("Conquiz end", ()=>{
     lowLag.play('/components/Bonne_reponse__VICTOIRE.mp3');
+    clearInterval(pointsCountdown);
 });
 
 socket.on("disconnect",()=>{
@@ -405,6 +490,29 @@ function checkQuestions(stringQuestion){
         return true;
     }
 }
+
+function checkFinale(stringQuestion){
+
+    finaleQuestions = [];
+    var questionsList = stringQuestion.split("$");
+    if (questionsList.length!=10){
+        return false;
+    }
+    else{
+        questionsList.forEach((element) => {
+            var question = element.split(";");
+            if (question.length!=2){
+                return false;
+            }
+            else{
+                finaleQuestions.push({question:question[0],answer:question[1]});
+            }
+        });
+        return true;
+    }
+    
+}
+
 
 function addPlayer(player,i){
     $(`.joueur${i}-name`).data("username",player.username);
@@ -473,9 +581,6 @@ function updatePoints(){
         $("#success-alert").slideUp(500);
     });
     socket.emit("Conquiz update currentPoints",currentPoints);
-    if (currentPoints==pointMaxManche2){
-        clearInterval(pointsCountdown);
-    }
 }
 
 async function moveBarre(pointsA,pointsB){
@@ -507,4 +612,24 @@ function extractNumberFromPercent(percent){
 function updateTimer(){
     secEcouler=Math.floor((new Date().getTime()-dateEstimation)/1000);
     $('#countdown-manche2').text(`${Math.floor(secEcouler/60)}:${secEcouler%60}`)
+}
+
+function updateFinaleTimer(){
+    var timeEcouler=parseInt($('#countdown-finale').text());
+    if (timeEcouler==0){
+        clearInterval(timerFinale);
+    }
+    $('#countdown-finale').text(`${timeEcouler-1}`)
+}
+
+function setFinaleQuestions(questions){
+    for (let i = 1; i <= 10; i++) {
+        $(`#finale-${i}`).text(questions[i-1].question);
+    }
+}
+
+function hideFinaleQuestions(){
+    for (let i = 1; i <= 10; i++) {
+        $(`#finale-${i}`).text("");
+    }
 }

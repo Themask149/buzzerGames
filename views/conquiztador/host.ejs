@@ -243,6 +243,7 @@
                         <button type="button" class="btn btn-warning" id="bloquer">Bloquer (B)</button>
                         <button type="button" class="btn btn-success" id="liberer">Libérer (L)</button>
                         <button type="button" class="btn btn-danger" id="Start-Manche1">Manche 1</button>
+                        <button type="button" class="btn btn-danger" id="Start-Finale">Finale</button>
                         <div id="validate-answer" style="display: none;">
                             <button type="button" class="btn btn-danger" id="Faux-manche2">Faux (F ou suppr)</button>
                             <button type="button" class="btn btn-success" id="Vrai-manche2">Vrai (V ou espace)</button>
@@ -264,6 +265,39 @@
                         </div>
                     </div>
 
+                </div>
+            </div>
+
+            <!-- Manche Finale -->
+            <div class="container" id="app-div-finale" style="display: none;">
+                <div class="row">
+                    <div class="col">
+                        <div class="case-finale block text-center fs-1" data-case="1" id="finale-1"></div>
+                        <div class="case-finale block text-center fs-1" data-case="2" id="finale-2"></div>
+                        <div class="case-finale block text-center fs-1" data-case="3" id="finale-3"></div>
+                        <div class="case-finale block text-center fs-1" data-case="4" id="finale-4"></div>
+                        <div class="case-finale block text-center fs-1" data-case="5" id="finale-5"></div>
+                    </div>
+                    <div class="col">
+                        <div class="case-finale block text-center fs-1" data-case="6" id="finale-6"></div>
+                        <div class="case-finale block text-center fs-1" data-case="7" id="finale-7"></div>
+                        <div class="case-finale block text-center fs-1" data-case="8" id="finale-8"></div>
+                        <div class="case-finale block text-center fs-1" data-case="9" id="finale-9"></div>
+                        <div class="case-finale block text-center fs-1" data-case="10" id="finale-10"></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div id="buttons-manche-finale" class="mx-auto my-2 text-center border-right col-6"
+                        style=" border-right: 1px solid #ccc;">
+                        <h2>Commandes</h2>
+                        <button type="button" class="btn btn-warning" id="Block-finale">Bloquer</button>
+                        <button type="button" class="btn btn-success" id="Unblock-finale">Lancer</button>
+                        <button type="button" class="btn btn-danger" id="Start-Manche2">Manche 2</button>
+                        <div class="" id="countdown-finale">
+                            0:00
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -441,7 +475,36 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Modal Manche finale -->
 
+            <div class="modal fade" id="modal-finale" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                aria-labelledby="finale-modal" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 class="modal-title" id="finale-modal">C'est parti pour la manche finale !!</h2>
+                        </div>
+                        <div class="modal-body">
+                            <div class="">
+                                <label for="listeFinale" class="form-label ">Mettez ici la liste des 10 questions de
+                                    la finale, sous ce format :
+                                    Q1;R1$Q2;R2$...$Q10;R10 </label>
+                                <input type="text" class="form-control" name="listeFinale" id="listeFinale"
+                                    placeholder="Saisir votre finale" required>
+                                <label class="form-check-label" for="conquiz-finale-time">
+                                        Nb de seconde pour la finale </label>
+                                <input type="number" name="conquiz-finale-time" id="conquiz-finale-time"
+                                        class="form-control" minlength="0" placeholder="Point max" value="60" required>
+                                
+                            </div>
+                        </div>
+                        <div class="modal-footer" id="finale-buttons">
+                            <button class="btn btn-primary" id="finale-launch" type="submit">Lancer la finale</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
 
 

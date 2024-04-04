@@ -69,7 +69,7 @@ export default function (io) {
                 player.points = 0;
                 player.player = true;
                 p = player;
-                r = { players: [], spectateurs: [], id: player.roomId, state: { manche: 1, buzzed: false, main:null,themesList:themesList,questionid:null,question:null,usedBlocks:[]},options:{roundTime:10,whitelistEnabled:false,whitelist:[],couleurs:["#162d94","#ffa500"]} };
+                r = { players: [], spectateurs: [], id: player.roomId, state: { manche: 1, buzzed: false, block: false, main:null,themesList:themesList,questionid:null,question:null,usedBlocks:[],finaleQuestions:null},options:{roundTime:10,whitelistEnabled:false,whitelist:[],couleurs:["#162d94","#ffa500"]} };
                 rooms.push(r);
                 socket.join(p.roomId);
                 console.log(`[Hosting Conquiz] ${p.username} host la room ` + p.roomId);
@@ -261,6 +261,13 @@ export default function (io) {
             
         });
 
+        socket.on("Conquiz start finale",()=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] start finale`);
+                r.state.manche=3;
+                ConquiztadorNS.to(p.roomId).emit("Conquiz start finale",r);
+            }});
+
         socket.on("Conquiz start manche2",()=>{
             if (p && p.host) {
                 console.log(`[Conquiz ${r.id}] start manche2`);
@@ -273,7 +280,46 @@ export default function (io) {
                 r.state.manche=1;
                 ConquiztadorNS.to(p.roomId).emit("Conquiz start manche1",r);
             }});
+
+        socket.on("Conquiz finale questions",(finaleQuestions)=>{
+            if (p && p.host && validateArray(finaleQuestions)) {
+                console.log(`[Conquiz ${r.id}] Questions finales`);
+                r.state.finaleQuestions=finaleQuestions;
+                ConquiztadorNS.to(p.roomId).emit("Conquiz finale questions",r);
+            }});
+
+        socket.on("Conquiz launch finale",()=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] launch finale`);
+                ConquiztadorNS.to(p.roomId).emit("Conquiz launch finale",r);
+            }});
         
+        socket.on("Conquiz block finale", ()=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] block finale`);
+                r.state.block=true;
+                ConquiztadorNS.to(p.roomId).emit("Conquiz block finale",r);
+            }});
+        
+        socket.on("Conquiz unblock finale", ()=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] unblock finale`);
+                r.state.block=false;
+                ConquiztadorNS.to(p.roomId).emit("Conquiz unblock finale",r);
+            }});
+
+        socket.on("Conquiz finale answer", (nb)=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] finale answer ${nb}`);
+                ConquiztadorNS.to(p.roomId).emit("Conquiz finale answer",nb);
+            }});
+            
+        socket.on("Conquiz finale unanswer", (nb)=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] finale unanswer ${nb}`);
+                ConquiztadorNS.to(p.roomId).emit("Conquiz finale unanswer",nb);
+            }});
+    
         socket.on("Conquiz libere",()=>{
             if (p && p.host) {
                 console.log(`[Conquiz ${r.id}] libere`);
@@ -366,6 +412,21 @@ export default function (io) {
                 ConquiztadorNS.to(p.roomId).emit("Conquiz update score",r.players[1-rang],r);
             }
         }
+
+        function validateArray(arr) {
+            if (arr.length !== 10) {
+              return false;
+            }
+          
+            for (let i = 0; i < arr.length; i++) {
+              const element = arr[i];
+              if (typeof element !== 'object' || !('question' in element) || !('answer' in element)) {
+                return false;
+              }
+            }
+          
+            return true;
+          }
 });
 
     return router;
