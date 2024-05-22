@@ -321,8 +321,13 @@ export default function (io) {
 
                     
                     if (r) {
+                        if (r.state.start){
+                            fafNamespace.in(p.roomId).disconnectSockets();
+                            fafNamespace.in(p.roomId).emit("FAF error", "Un joueur a quitté la partie, veuillez la relancer et remettre les points");
+                        }
                         r.players = r.players.filter((player) => player.username !== p.username);
                         r.spectateurs = r.spectateurs.filter((player) => player.username !== p.username);
+                        
                     }
                     fafNamespace.to(p.roomId).emit("FAF remove player", r);
                 }
