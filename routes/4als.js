@@ -124,11 +124,19 @@ export default function (io) {
 
         socket.on("4ALS end", () => {
             if (p && p.host) {
-                r.state.start = false;
-                var player = r.players.find((player) => { return player.username === r.state.currentPlayer; });
-                player.points=r.state.maxScore;
-                r.state.score=0;
-                io.to(p.roomId).emit("4ALS end", r,player);
+                try{
+                    r.state.start = false;
+                    var player = r.players.find((player) => { return player.username === r.state.currentPlayer; });
+                    player.points=r.state.maxScore;
+                    r.state.score=0;
+                    io.to(p.roomId).emit("4ALS end", r,player);
+                }
+                catch(e){
+                    console.error("Il y a eu un pb dans 4ALS end : "+e);
+                    io.in(p.roomID).emit("4ALS error","Il y a eu un problème lors du 4 à la suite")
+                    io.in(p.roomID).disconnectSockets();
+                }
+                
             }
         });
 
