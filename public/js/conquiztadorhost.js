@@ -30,10 +30,10 @@ var reponsesEstimation=[];
 
 lowLag.init();
 lowLag.load('/components/Bonne_reponse.mp3');
-lowLag.load('/components/Bonne_reponse__VICTOIRE.mp3');
+lowLag.load('/components/Bonne_reponse__VICTOIRE2.mp3');
 lowLag.load('/components/Buzzer_Joueur_1_Champion.mp3');
 lowLag.load('/components/Buzzer_Joueur_2_Challenger.mp3');
-lowLag.load('/components/Suspense.mp3');
+lowLag.load('/components/Suspense_2.mp3');
 lowLag.load('/components/Mauvaise_reponse.mp3');
 lowLag.load('/components/Presentation_des_3_themes.mp3');
 
@@ -110,6 +110,7 @@ $('.case-finale').on('click',(e)=>{
             var number = parseInt($(e.target).data("case"));
             $(e.target).addClass("good-block");
             $(e.target).text(finaleQuestions[number-1].answer);
+            lowlag.play('/components/Ding.mp3');
             socket.emit("Conquiz finale answer",number);
         }
         else{
@@ -138,7 +139,7 @@ $('#Vrai-manche1').on('click',(e)=>{
 });
 
 $('#Suspense-manche1').on('click',(e)=>{
-    lowLag.play('/components/Suspense.mp3');
+    lowLag.play('/components/Suspense_2.mp3');
     socket.emit("Conquiz suspense");
 });
 
@@ -196,6 +197,21 @@ $("#bloquer").on('click',(e)=>{
 $("#Block-finale").on('click',(e)=>{
     if (!currentRoom.state.block){
         socket.emit("Conquiz block finale");
+    }
+});
+
+$("#stop-countdown-manche2").on('click',(e)=>{
+    if ($("#stop-countdown-manche2").data("stopped")=="no"){
+        clearInterval(pointsCountdown);
+        clearInterval(timerManche2);
+        $("#stop-countdown-manche2").text("Restart");
+        $("#stop-countdown-manche2").data("stopped","yes");
+    }
+    else{
+        pointsCountdown=setInterval(updatePoints,rateManche2*1000)
+        timerManche2=setInterval(updateTimer,1000);
+        $("#stop-countdown-manche2").text("Stop");
+        $("#stop-countdown-manche2").data("stopped","no");
     }
 });
 
@@ -445,8 +461,9 @@ socket.on("Conquiz son",(bool)=>{
 })
 
 socket.on("Conquiz end", ()=>{
-    lowLag.play('/components/Bonne_reponse__VICTOIRE.mp3');
+    lowLag.play('/components/Bonne_reponse__VICTOIRE2.mp3');
     clearInterval(pointsCountdown);
+    clearInterval(timerManche2);
 });
 
 socket.on("disconnect",()=>{
@@ -616,6 +633,10 @@ function updateTimer(){
 
 function updateFinaleTimer(){
     var timeEcouler=parseInt($('#countdown-finale').text());
+    if (timeEcouler==5){
+        lowLag.play('/components/Suspense_final.mp3');
+        socket.emit("Conquiz finale suspense");
+    }
     if (timeEcouler==0){
         clearInterval(timerFinale);
     }

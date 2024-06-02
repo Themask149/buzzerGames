@@ -40,10 +40,10 @@ $(document).keydown(function(event) {
 
 lowLag.init();
 lowLag.load('/components/Bonne_reponse.mp3');
-lowLag.load('/components/Bonne_reponse__VICTOIRE.mp3');
+lowLag.load('/components/Bonne_reponse__VICTOIRE2.mp3');
 lowLag.load('/components/Buzzer_Joueur_1_Champion.mp3');
 lowLag.load('/components/Buzzer_Joueur_2_Challenger.mp3');
-lowLag.load('/components/Suspense.mp3');
+lowLag.load('/components/Suspense_2.mp3');
 lowLag.load('/components/Mauvaise_reponse.mp3');
 lowLag.load('/components/Presentation_des_3_themes.mp3');
 
@@ -169,7 +169,7 @@ socket.on("Conquiz theme", async (i)=>{
 })
 
 socket.on("Conquiz suspense",()=>{
-    lowLag.play('/components/Suspense.mp3');
+    lowLag.play('/components/Suspense_2.mp3');
 });
 
 socket.on("Conquiz update score",(player,room)=>{
@@ -239,7 +239,7 @@ socket.on("Conquiz remove current player", (room) => {
 });
 
 socket.on("Conquiz end", ()=>{
-    lowLag.play('/components/Bonne_reponse__VICTOIRE.mp3');
+    lowLag.play('/components/Bonne_reponse__VICTOIRE2.mp3');
 });
 
 
@@ -297,6 +297,7 @@ socket.on("Conquiz unblock finale",(r)=>{
 
 socket.on("Conquiz finale answer",(number)=>{
     $(`#finale-${number}`).addClass("good-block");
+    lowlag.play('/components/Ding.mp3');
     $(`#finale-${number}`).text(currentRoom.state.finaleQuestions[number-1].answer);
 })
 
@@ -305,6 +306,10 @@ socket.on("Conquiz finale unanswer",(number)=>{
     $(`#finale-${number}`).text(currentRoom.state.finaleQuestions[number-1].question);
 });
 
+socket.on("Conquiz finale suspens",()=>{
+    lowLag.play('/components/Suspense_final.mp3');
+
+})
 socket.on("Conquiz son",(bool)=>{
     if (bool){
         lowLag.play('/components/Bonne_reponse.mp3');

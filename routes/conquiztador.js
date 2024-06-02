@@ -59,7 +59,7 @@ export default function (io) {
 
         socket.once('Conquiz playerDataHost', (player,themesList) => {
             console.log("Receiving playerDataHost in Conquiz");
-            if (!/^[A-Za-z0-9]*[A-Za-z0-9\s]+[A-Za-z0-9]*$/.test(player.username)) {
+            if (!/^[A-Za-z0-9]*[A-Za-z0-9]+[A-Za-z0-9]*$/.test(player.username)) {
                 socket.disconnect();
             }
             else if (!rooms.find((room) => { return player.roomId === room.id; })) {
@@ -81,7 +81,7 @@ export default function (io) {
 
         socket.on('Conquiz playerData', (player) => {
             console.log("Receiving playerData in Conquiz: "+JSON.stringify(player));
-            if (!/^[A-Za-z0-9]*[A-Za-z0-9\s]+[A-Za-z0-9]*$/.test(player.username)) {
+            if (!/^[A-Za-z0-9]*[A-Za-z0-9]+[A-Za-z0-9]*$/.test(player.username)) {
                 ConquiztadorNS.in(player.socketId).emit("Conquiz error", "Choississez un pseudo qu'avec des caractères alphanumériques");
                 
             }
@@ -179,7 +179,7 @@ export default function (io) {
                 console.log(`[Conquiz ${r.id}] estimation : `+question);
                 r.players.forEach((player)=>
                     ConquiztadorNS.in(player.socketId).emit("Conquiz estimation", question));
-            }
+                }
         });
 
         socket.on("Conquiz estimation reponse",(reponse)=>{
@@ -318,6 +318,12 @@ export default function (io) {
             if (p && p.host) {
                 console.log(`[Conquiz ${r.id}] finale unanswer ${nb}`);
                 ConquiztadorNS.to(p.roomId).emit("Conquiz finale unanswer",nb);
+            }});
+        
+        socket.on("Conquiz finale suspens", ()=>{
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] finale suspens`);
+                ConquiztadorNS.to(p.roomId).emit("Conquiz finale suspens");
             }});
     
         socket.on("Conquiz libere",()=>{
