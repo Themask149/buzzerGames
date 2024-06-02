@@ -46,6 +46,7 @@ lowLag.load('/components/Buzzer_Joueur_2_Challenger.mp3');
 lowLag.load('/components/Suspense_2.mp3');
 lowLag.load('/components/Mauvaise_reponse.mp3');
 lowLag.load('/components/Presentation_des_3_themes.mp3');
+lowLag.load('/components/Suspense_final.mp3');
 
 
 $("#form-pseudo").on('submit', function (e){
