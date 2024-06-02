@@ -112,7 +112,7 @@ $('.case-finale').on('click',(e)=>{
             var number = parseInt($(e.target).data("case"));
             $(e.target).addClass("good-block");
             $(e.target).text(finaleQuestions[number-1].answer);
-            lowlag.play('/components/Ding.mp3');
+            lowLag.play('/components/Ding.mp3');
             socket.emit("Conquiz finale answer",number);
         }
         else{
