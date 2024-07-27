@@ -9,6 +9,8 @@ var myplayer = {
 
 const socket = io("/conquiztador");
 var questions = [];
+var questionsManche2 = [];
+var indexQuestionsManche2 = 0;
 var themesList = [];
 var finaleQuestions = [];
 var reponseEstimation;
@@ -102,7 +104,7 @@ $('.block').on('click',(e)=>{
         $('#question-div').text(question.question);
         $('#reponse-div').text(question.answer);
         $('#question-div').data("points",(number-1)%3+1 )
-        socket.emit("Conquiz question",question.question,e.target.id);
+        socket.emit("Conquiz question",question.question,e.target.id,(number-1)%3+1);
     }
 })
 
@@ -156,6 +158,20 @@ $('#Faux-manche2').on('click',(e)=>{
     liberer();
     currentPlayer=null;
 })
+
+$('#question-suivante').on('click',(e)=>{
+    questionSuivante()
+})
+
+function questionSuivante(){
+    if (indexQuestionsManche2<questionsManche2.length){
+        socket.emit("Conquiz question manche2",questionsManche2[indexQuestionsManche2]);
+        indexQuestionsManche2+=1;
+    }
+    else{
+        console.log("Fin des questions");
+    }
+}
 
 $("#Show-Themes").on('click',async (e)=>{
     $("#Show-Themes").hide("slow");
@@ -232,13 +248,17 @@ socket.on("Conquiz unblock finale",(r)=>{
     currentRoom=r;
     timerFinale=setInterval(updateFinaleTimer,1000);
 })
-
+const takeEveryTwo = (arr) => arr.filter((item, index) => (index % 2) === 0);
 $("#conquiz-manche2-button").on('click',(e)=>{
     if ($('#conquiz-pointmax').val()){
         pointMaxManche2=$('#conquiz-pointmax').val();
     }
     if ($("#conquiz-rate").val()){
         rateManche2=$("#conquiz-rate").val();
+    }
+    if ($("#conquiz-questions").val()){
+        questionsManche2 = $("#conquiz-questions").val().split("\n");
+        questionsManche2 = takeEveryTwo(questionsManche2);
     }
     pointsCountdown=setInterval(updatePoints,rateManche2*1000)
     timerManche2=setInterval(updateTimer,1000);
@@ -406,6 +426,11 @@ socket.on("Conquiz start manche2", (room) => {
     room.players.forEach((player)=>{
         $(document).off('click', `.joueur-${player.username}`);
     })
+    $(document).keydown(function(e){
+        if (e.code === "Space"){
+            questionSuivante();
+        }
+    });
     moveBarre(room.players[0].points,room.players[1].points); 
 });
 

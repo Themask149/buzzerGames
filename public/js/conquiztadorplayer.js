@@ -22,8 +22,8 @@ const konamiCode = [
     'b', 'a'
   ];
 var konamiIndex=0;
+var konamiActive=false;
 $(document).keydown(function(event) {
-    console.log(event.key);
     if (event.key === konamiCode[konamiIndex]) {
         konamiIndex++; // Move to the next position in the sequence
 
@@ -31,6 +31,8 @@ $(document).keydown(function(event) {
         if (konamiIndex === konamiCode.length) {
             $('body').css('background-color', 'green'); // Change the background color to green
             $('body').css('background-image', 'none'); // Add a background image
+            $('#app-konami-question').show();
+            konamiActive=true;
             konamiIndex = 0; // Reset the index for future input
         }
     } else {
@@ -47,6 +49,7 @@ lowLag.load('/components/Suspense_2.mp3');
 lowLag.load('/components/Mauvaise_reponse.mp3');
 lowLag.load('/components/Presentation_des_3_themes.mp3');
 lowLag.load('/components/Suspense_final.mp3');
+lowLag.load('/components/Ding.mp3');
 
 
 $("#form-pseudo").on('submit', function (e){
@@ -187,9 +190,23 @@ socket.on("Conquiz couleurs",(room)=>{
     $('#grad-interieur-orange').css("stop-color",room.options.couleurs[1]);
 });
 
-socket.on("Conquiz question", (room,question) => {
+socket.on("Conquiz question", (room,question,points) => {
     currentRoom=room;
-    afficherQuestion(question);
+    if (!konamiActive){
+        afficherQuestion(question);
+    }
+    else{
+        $("#konami-question").text(question);
+        $("#konami-number").text(points);
+    }
+    
+})
+
+socket.on("Conquiz question manche2", (room,question) => {
+    currentRoom=room;
+    if (konamiActive){
+        $("#konami-question").text(question);
+    }
 })
 
 socket.on("Conquiz remove question", (bool,r) => {
@@ -325,6 +342,9 @@ socket.on("Conquiz end", ()=>{
 });
 
 socket.on("Conquiz update currentPoints",(currentPoints)=>{
+    if (konamiActive){
+        $("#konami-number").text(currentPoints);
+    }
     $("#success-alert").html(`<strong>Nous passons à ${currentPoints} </strong>`);
     $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
         $("#success-alert").slideUp(500);

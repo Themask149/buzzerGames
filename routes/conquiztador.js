@@ -69,7 +69,7 @@ export default function (io) {
                 player.points = 0;
                 player.player = true;
                 p = player;
-                r = { players: [], spectateurs: [], id: player.roomId, state: { manche: 1, buzzed: false, block: false, main:null,themesList:themesList,questionid:null,question:null,usedBlocks:[],finaleQuestions:null},options:{roundTime:10,whitelistEnabled:false,whitelist:[],couleurs:["#162d94","#ffa500"]} };
+                r = { players: [], spectateurs: [], id: player.roomId, state: { manche: 1, buzzed: false, block: false, currentPointsManche2: 0, main:null,themesList:themesList,questionid:null,question:null,usedBlocks:[],finaleQuestions:null},options:{roundTime:10,whitelistEnabled:false,whitelist:[],couleurs:["#162d94","#ffa500"]} };
                 rooms.push(r);
                 socket.join(p.roomId);
                 console.log(`[Hosting Conquiz] ${p.username} host la room ` + p.roomId);
@@ -215,12 +215,20 @@ export default function (io) {
             }
         });
 
-        socket.on("Conquiz question", (question,id) => {
+        socket.on("Conquiz question", (question,id,points) => {
             if (p && p.host) {
                 console.log(`[Conquiz ${r.id}] ${question}`);
                 r.state.questionid=id;
                 r.state.question=question;
-                ConquiztadorNS.to(p.roomId).emit("Conquiz question",r,question);
+                ConquiztadorNS.to(p.roomId).emit("Conquiz question",r,question,points);
+            }
+        });
+
+        socket.on("Conquiz question manche2", (question)=> {
+            if (p && p.host) {
+                console.log(`[Conquiz ${r.id}] ${question}`);
+                r.state.question=question;
+                ConquiztadorNS.to(p.roomId).emit("Conquiz question manche2",r,question);
             }
         });
 
@@ -363,6 +371,7 @@ export default function (io) {
 
         socket.on("Conquiz update currentPoints",(currentPoints)=>{
             if (p && p.host) {
+                r.state.currentPointsManche2=currentPoints;
                 ConquiztadorNS.to(p.roomId).emit("Conquiz update currentPoints",currentPoints);
             }
         })

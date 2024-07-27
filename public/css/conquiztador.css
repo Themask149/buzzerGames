@@ -62,3 +62,45 @@ body {
   background-image: url("../components/carte.jpeg");
   background-size: cover;
 }
+
+@font-face {
+  font-family: 'Maiandra GD';
+  src: url('Maiandra_GD_Regular/Maiandra_GD_Regular.ttf') format('truetype'); /* Ensure you have the font file in the correct path */
+}
+
+.konami-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80%; /* Adjust width as necessary */
+  margin: 20px auto; /* Center the container */
+}
+
+#konami-number {
+  font-family: 'Arial Black', sans-serif;
+  background-color: #210053; /* Dark blue background */
+  color: #FFFFFF; /* White text */
+  text-shadow: 2px 2px 0px #000000; /* Black text shadow */
+  padding: 0px 20px;
+  border: 5px solid #4B00A5; /* Purple border */
+  border-radius: 10px;
+  font-size: 36px; /* Adjust as necessary */
+  text-align: center;
+  margin-bottom: -10px; /* Adjust this to stick the blocks together */
+  position: relative;
+  line-height:1.2;
+}
+
+#konami-question {
+  font-family: 'Maiandra GD', sans-serif;
+  background-color: #090097; /* Dark blue background */
+  color: #ffffff; /* Light yellow text */
+  text-shadow: 2px 2px 0px #000000; /* Black text shadow */
+  padding: 20px;
+  border: 5px solid #4B00A5; /* Purple border */
+  border-radius: 10px;
+  font-size: 35px; /* Adjust as necessary */
+  text-align: center;
+  z-index: 0; /* Ensures the main block is below the number block */
+  line-height: 1;
+}
