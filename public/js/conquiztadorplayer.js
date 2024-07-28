@@ -238,6 +238,9 @@ socket.on("Conquiz start manche2", (room) => {
     currentRoom=room;
     $('#app-div-manche1').hide("slow");
     $('#app-div-manche2').show("slow");
+    if (konamiActive){
+        $("#konami-number-number").text(1);
+    }
     moveBarre(room.players[0].points,room.players[1].points);
 });
 
@@ -343,7 +346,7 @@ socket.on("Conquiz end", ()=>{
 
 socket.on("Conquiz update currentPoints",(currentPoints)=>{
     if (konamiActive){
-        $("#konami-number").text(currentPoints);
+        $("#konami-number-number").text(currentPoints);
     }
     $("#success-alert").html(`<strong>Nous passons à ${currentPoints} </strong>`);
     $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
