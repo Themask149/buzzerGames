@@ -29,7 +29,7 @@ $(document).keydown(function(event) {
 
         // If all keys in the sequence have been pressed, execute the code
         if (konamiIndex === konamiCode.length) {
-            $('body').css('background-color', 'green'); // Change the background color to green
+            $('body').css('background-color', 'pink'); // Change the background color to pink
             $('body').css('background-image', 'none'); // Add a background image
             $('#app-konami-question').show();
             konamiActive=true;
@@ -196,7 +196,7 @@ socket.on("Conquiz question", (room,question,points) => {
         afficherQuestion(question);
     }
     else{
-        $("#konami-question").text(question);
+        $("#konami-question").text(question.toUpperCase());
         $("#konami-number").text(points);
     }
     
@@ -205,7 +205,7 @@ socket.on("Conquiz question", (room,question,points) => {
 socket.on("Conquiz question manche2", (room,question) => {
     currentRoom=room;
     if (konamiActive){
-        $("#konami-question").text(question);
+        $("#konami-question").text(question.toUpperCase());
     }
 })
 
