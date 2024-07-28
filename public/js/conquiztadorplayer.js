@@ -197,7 +197,7 @@ socket.on("Conquiz question", (room,question,points) => {
     }
     else{
         $("#konami-question").text(question.toUpperCase());
-        $("#konami-number").text(points);
+        $("#konami-number-number").text(points);
     }
     
 })
