@@ -2,6 +2,7 @@
 import { Server } from 'socket.io';
 import express from "express";
 import https from "https";
+import http from "http";
 import fs from "fs";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -9,15 +10,16 @@ import cookieParser from 'cookie-parser';
 import { adminAuth, isConnected, getUser } from './API/connectivity.js';
 
 dotenv.config();
-const options = {
-    key: fs.readFileSync('key.pem'),
-    cert: fs.readFileSync('cert.pem')
-    };
+// const options = {
+//     key: fs.readFileSync('key.pem'),
+//     cert: fs.readFileSync('cert.pem')
+//     };
 
 mongoose.connect(process.env.MONGOLINK,{useNewUrlParser: true, useUnifiedTopology: true});
 
 const app = express();
-const server = https.createServer(options,app);
+// const server = https.createServer(options,app);
+const server = http.createServer(app);
 const port = process.env.PORT || 8080;
 const HOST = '192.168.1.130';
 const io = new Server(server);
