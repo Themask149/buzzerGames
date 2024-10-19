@@ -21,8 +21,9 @@ var currentPlayer;
 var currentRoom;
 var currentPoints=1;
 var pointMaxManche2 = 6;
-var rateManche2=30;
+var rateManche2=60;
 var pointsCountdown;
+var secEcouler=0;
 var timerManche2;
 var timerFinale;
 var tempsMovement=1;
@@ -163,6 +164,11 @@ $('#question-suivante').on('click',(e)=>{
     questionSuivante()
 })
 
+$('#show-modal-manche2').on('click',(e)=>{
+    $("#modal-manche2").modal("show");
+    $("#show-modal-manche2").hide();
+})
+
 function questionSuivante(){
     if (indexQuestionsManche2<questionsManche2.length){
         socket.emit("Conquiz question manche2",questionsManche2[indexQuestionsManche2]);
@@ -195,7 +201,7 @@ $('#Start-Finale').on('click',(e)=>{
 $('#Start-Manche2').on('click',(e)=>{
     if (currentRoom.players.length==2){
         socket.emit("Conquiz start manche2");
-        $("#modal-manche2").modal("show");
+        $("#show-modal-manche2").show();
     }
 });
 
@@ -220,14 +226,17 @@ $("#Block-finale").on('click',(e)=>{
 
 $("#stop-countdown-manche2").on('click',(e)=>{
     if ($("#stop-countdown-manche2").data("stopped")=="no"){
+        console.log("Stopped Timer")
         clearInterval(pointsCountdown);
         clearInterval(timerManche2);
+        secEcouler=Math.floor((new Date().getTime()-dateEstimation));
         $("#stop-countdown-manche2").text("Restart");
         $("#stop-countdown-manche2").data("stopped","yes");
     }
     else{
-        pointsCountdown=setInterval(updatePoints,rateManche2*1000)
-        timerManche2=setInterval(updateTimer,1000);
+        dateEstimation=new Date().getTime()-secEcouler;
+        pointsCountdown=setInterval(updatePoints,1000)
+        timerManche2=setInterval(updateTimer,100);
         $("#stop-countdown-manche2").text("Stop");
         $("#stop-countdown-manche2").data("stopped","no");
     }
@@ -249,6 +258,7 @@ socket.on("Conquiz unblock finale",(r)=>{
     timerFinale=setInterval(updateFinaleTimer,1000);
 })
 const takeEveryTwo = (arr) => arr.filter((item, index) => (index % 2) === 0);
+
 $("#conquiz-manche2-button").on('click',(e)=>{
     if ($('#conquiz-pointmax').val()){
         pointMaxManche2=$('#conquiz-pointmax').val();
@@ -260,9 +270,11 @@ $("#conquiz-manche2-button").on('click',(e)=>{
         questionsManche2 = $("#conquiz-questions").val().split("\n");
         questionsManche2 = takeEveryTwo(questionsManche2);
     }
-    pointsCountdown=setInterval(updatePoints,rateManche2*1000)
-    timerManche2=setInterval(updateTimer,1000);
+    currentPoints=0;
+    pointsCountdown=setInterval(updatePoints,1000)
+    timerManche2=setInterval(updateTimer,100);
     dateEstimation=new Date().getTime();
+    secEcouler=0;
     liberer();
     $("#modal-manche2").modal("hide");
 
@@ -422,6 +434,9 @@ socket.on("Conquiz start manche2", (room) => {
     $('#app-div-manche1').hide("slow");
     $('#app-div-manche2').show("slow");
     timerFinale=clearInterval(timerFinale);
+    pointsCountdown=clearInterval(pointsCountdown);
+    currentPoints=0
+    secEcouler=0;
     socket.emit("Conquiz remove current player");
     room.players.forEach((player)=>{
         $(document).off('click', `.joueur-${player.username}`);
@@ -474,7 +489,9 @@ socket.on("Conquiz buzzed", (room,rang)=>{
     $("#buzzer-state").text("Buzzed");
     $("#buzzer-circle").attr('fill',"red");
     $(`.joueur${rang}-card`).css('background-color',room.options.couleurs[rang-1]);
-    $('#validate-answer').show("fast");
+    if (pointsCountdown || timerManche2) {
+        $('#validate-answer').show("fast");
+    }
 
 })
 
@@ -619,12 +636,15 @@ function block(){
 }
 
 function updatePoints(){
-    currentPoints+=1;
-    $("#success-alert").html(`<strong>Nous passons à ${currentPoints} </strong>`);
-    $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
-        $("#success-alert").slideUp(500);
-    });
-    socket.emit("Conquiz update currentPoints",currentPoints);
+    nbPoint=parseInt(((Date.now()-dateEstimation)/1000)/rateManche2);
+    if (nbPoint!=currentPoints && nbPoint<=pointMaxManche2){
+        currentPoints=nbPoint;
+        $("#success-alert").html(`<strong>Nous passons à ${currentPoints} </strong>`);
+        $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
+            $("#success-alert").slideUp(500);
+        });
+        socket.emit("Conquiz update currentPoints",currentPoints);
+    }
 }
 
 async function moveBarre(pointsA,pointsB){

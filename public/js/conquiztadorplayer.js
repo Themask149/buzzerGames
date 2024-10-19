@@ -318,7 +318,7 @@ socket.on("Conquiz unblock finale",(r)=>{
 
 socket.on("Conquiz finale answer",(number)=>{
     $(`#finale-${number}`).addClass("good-block");
-    lowlag.play('/components/Ding.mp3');
+    lowLag.play('/components/Ding.mp3');
     $(`#finale-${number}`).text(currentRoom.state.finaleQuestions[number-1].answer);
 })
 
@@ -327,7 +327,7 @@ socket.on("Conquiz finale unanswer",(number)=>{
     $(`#finale-${number}`).text(currentRoom.state.finaleQuestions[number-1].question);
 });
 
-socket.on("Conquiz finale suspens",()=>{
+socket.on("Conquiz finale suspense",()=>{
     lowLag.play('/components/Suspense_final.mp3');
 
 })
@@ -348,6 +348,7 @@ socket.on("Conquiz update currentPoints",(currentPoints)=>{
     if (konamiActive){
         $("#konami-number-number").text(currentPoints);
     }
+    lowLag.play('/components/Ding.mp3');
     $("#success-alert").html(`<strong>Nous passons à ${currentPoints} </strong>`);
     $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
         $("#success-alert").slideUp(500);

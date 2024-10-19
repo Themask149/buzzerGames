@@ -329,10 +329,10 @@ export default function (io) {
                 ConquiztadorNS.to(p.roomId).emit("Conquiz finale unanswer",nb);
             }});
         
-        socket.on("Conquiz finale suspens", ()=>{
+        socket.on("Conquiz finale suspense", ()=>{
             if (p && p.host) {
                 console.log(`[Conquiz ${r.id}] finale suspens`);
-                ConquiztadorNS.to(p.roomId).emit("Conquiz finale suspens");
+                ConquiztadorNS.to(p.roomId).emit("Conquiz finale suspense");
             }});
     
         socket.on("Conquiz libere",()=>{
