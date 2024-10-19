@@ -348,7 +348,7 @@ socket.on("Conquiz update currentPoints",(currentPoints)=>{
     if (konamiActive){
         $("#konami-number-number").text(currentPoints);
     }
-    lowLag.play('/components/Ding.mp3');
+    lowLag.play('/components/Change.mp3');
     $("#success-alert").html(`<strong>Nous passons à ${currentPoints} </strong>`);
     $("#success-alert").fadeTo(2000, 500).slideUp(500, function(){
         $("#success-alert").slideUp(500);
