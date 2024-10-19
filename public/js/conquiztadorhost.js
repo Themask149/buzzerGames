@@ -435,7 +435,7 @@ socket.on("Conquiz start manche2", (room) => {
     $('#app-div-manche2').show("slow");
     timerFinale=clearInterval(timerFinale);
     pointsCountdown=clearInterval(pointsCountdown);
-    currentPoints=0
+    currentPoints=1;
     secEcouler=0;
     socket.emit("Conquiz remove current player");
     room.players.forEach((player)=>{
