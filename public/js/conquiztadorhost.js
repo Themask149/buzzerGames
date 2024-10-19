@@ -270,7 +270,7 @@ $("#conquiz-manche2-button").on('click',(e)=>{
         questionsManche2 = $("#conquiz-questions").val().split("\n");
         questionsManche2 = takeEveryTwo(questionsManche2);
     }
-    currentPoints=0;
+    currentPoints=1;
     pointsCountdown=setInterval(updatePoints,1000)
     timerManche2=setInterval(updateTimer,100);
     dateEstimation=new Date().getTime();
