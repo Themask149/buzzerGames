@@ -1,10 +1,11 @@
 {
   "name": "buzzergames",
   "version": "1.0.0",
-  "description": "I tried to make a website that is focus on games about buzzers",
+  "description": "I am trying to build a website focused on buzzer games for the trivia community.",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write .",
     "start": "node app.js"
   },
   "type": "module",
@@ -41,5 +42,12 @@
     "socket.io": "^4.5.4",
     "validator": "^13.7.0",
     "xss": "^1.0.13"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.1",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "prettier-plugin-ejs": "^1.0.3"
   }
 }
